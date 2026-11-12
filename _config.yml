@@ -1,3 +1,15 @@
-theme: jekyll-theme-cayman
 title: NGS Course 2026
-description: Next-generation sequencing data analysis on HPC, 16–20 November 2026
+description: Next-generation sequencing data analysis on HPC
+dates: 16–20 November 2026
+location: University of Bern
+instructor: Vidhya Jagannathan
+
+# all pages use the course layout (_layouts/default.html)
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+
+exclude:
+  - README.md

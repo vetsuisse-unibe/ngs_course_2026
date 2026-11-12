@@ -1,3 +1,6 @@
+---
+title: "UNIX: Getting to Know the Dog Genome"
+---
 <!--
 INSTRUCTOR NOTES (not rendered on GitHub)
 Students need one file in /data/courses/courseB/UnixEx/:

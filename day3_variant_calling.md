@@ -1,3 +1,6 @@
+---
+title: "Variant Calling: Why Can't These Puppies Walk?"
+---
 <!--
 INSTRUCTOR NOTES (not rendered on GitHub)
 This exercise expects the following prepared files under /data/courses/courseB/EFNB3/:

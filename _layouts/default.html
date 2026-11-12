@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if page.home %}
+  <title>{{ site.title }}</title>
+  {% else %}
+  <title>{{ page.title }} · {{ site.title }}</title>
+  {% endif %}
+  <meta name="description" content="{{ site.description }}">
+  <link rel="stylesheet" href="{{ '/assets/css/course.css' | relative_url }}">
+</head>
+<body class="{% if page.home %}home{% else %}exercise{% endif %}">
+
+  <nav class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="{{ '/' | relative_url }}">🧬 {{ site.title }}</a>
+      <div class="navlinks">
+        {% for d in site.data.days %}
+        <a href="{{ d.url | relative_url }}"{% if page.url == d.url %} class="current"{% endif %}>{{ d.nav }}</a>
+        {% endfor %}
+        <a href="https://github.com/vetsuisse-unibe/ngs_course_2026" class="gh">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  {% assign this_day = site.data.days | where: "url", page.url | first %}
+  <header class="hero">
+    <div class="hero-inner">
+      {% if page.home %}
+        <p class="eyebrow">{{ site.dates }} · {{ site.location }}</p>
+        <h1>{{ site.title }}</h1>
+        <p class="lede">{{ site.description }}</p>
+      {% else %}
+        <p class="eyebrow">{{ site.title }}{% if this_day %} · Day {{ this_day.day }}{% endif %}</p>
+        <h1>{{ page.title }}</h1>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="page">
+    <main class="content" id="content">
+      {{ content }}
+    </main>
+  </div>
+
+  <footer class="footer">
+    <p>{{ site.title }} · {{ site.location }} · Instructor: {{ site.instructor }}</p>
+    <p><a href="https://vetsuisse-unibe.github.io/ngs_course_2025/">2025 course</a> · <a href="https://vetsuisse-unibe.github.io/NGS-course-docs/">2024 and earlier</a></p>
+  </footer>
+
+  <script src="{{ '/assets/js/course.js' | relative_url }}"></script>
+</body>
+</html>
