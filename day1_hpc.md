@@ -43,7 +43,7 @@ clusterstate.sh
 | `completing` | Node is finishing current jobs |
 | `down` | Node is offline or under maintenance |
 
-For this course, one node has been **reserved** for us. Every job you submit this week must use the course **account** and **reservation**, during and after class hours. To see the reservation and its node:
+For this course, one node has been **reserved** for us. Every job you submit this week must use the **partition** (queue) `pibu_el8` with the course **account** and **reservation**, during and after class hours. To see the reservation and its node:
 
 ```shell
 scontrol show reservation class-26980-ws-2026
@@ -169,12 +169,13 @@ Run it on the login node (only because it is tiny):
 Now let SLURM run it on a compute node:
 
 ```shell
-sbatch --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 -t 00:05:00 first_job.sh
+sbatch --partition=pibu_el8 --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 -t 00:05:00 first_job.sh
 squeue -u $USER
 ```
 
 - `sbatch` submits a job script to SLURM.
-- `--account` and `--reservation` send the job to the course node reserved for us; `-t 00:05:00` is the time limit (5 minutes).
+- `--partition=pibu_el8` is the queue the course node belongs to; `--account` and `--reservation` send the job to the course node reserved for us.
+- `-t 00:05:00` is the time limit (5 minutes).
 - `squeue -u $USER` lists your jobs. `$USER` is replaced by your user name.
 
 Questions:
@@ -206,6 +207,7 @@ This time we write the SLURM options **inside** the script, on lines starting wi
 ```shell
 #!/bin/bash
 #SBATCH --job-name=countReads
+#SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
 #SBATCH --mem=1G
@@ -222,7 +224,7 @@ done
 | Line | Meaning |
 |---|---|
 | `--job-name` | a name you will recognise in `squeue` |
-| `--account`, `--reservation` | run on the course node reserved for us |
+| `--partition`, `--account`, `--reservation` | run on the course node reserved for us (in the `pibu_el8` queue) |
 | `--mem=1G` | 1 GB of memory |
 | `--time=00:30:00` | stop the job after 30 minutes |
 | `--output=countReads.out` | write everything the script prints into this file |
@@ -258,6 +260,7 @@ Save this as `count_reads_array.slurm` in `scripts`:
 ```shell
 #!/bin/bash
 #SBATCH --job-name=countArray
+#SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
 #SBATCH --mem=1G
@@ -304,7 +307,7 @@ Questions:
 Sometimes you want to work **on** a compute node yourself, for example to look at alignments with `samtools tview` on Day 2. `srun --pty` gives you a terminal on a compute node:
 
 ```shell
-srun --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 --cpus-per-task=1 --mem=2G --time=00:30:00 --pty /bin/bash
+srun --partition=pibu_el8 --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 --cpus-per-task=1 --mem=2G --time=00:30:00 --pty /bin/bash
 hostname
 module load SAMtools/1.13-GCC-10.3.0
 samtools --version | head -n 1
@@ -320,6 +323,7 @@ Made a mistake? `scancel` stops a job. Save this as `long_job.slurm`:
 ```shell
 #!/bin/bash
 #SBATCH --job-name=longJob
+#SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
 #SBATCH --mem=1G

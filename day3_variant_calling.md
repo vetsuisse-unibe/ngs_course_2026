@@ -92,6 +92,7 @@ code markduplicates.sh
 #SBATCH --chdir=.
 #SBATCH --time=1:00:00
 #SBATCH --mem=8G
+#SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
 #SBATCH --output=markDup_%j.out
@@ -121,7 +122,7 @@ Questions:
 Before running any variant caller, look at the reads. Open an interactive session and use `samtools tview` on one of the affected dogs:
 
 ```shell
-srun --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 --time=1:00:00 --mem=4G --pty /bin/bash
+srun --partition=pibu_el8 --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 --time=1:00:00 --mem=4G --pty /bin/bash
 module load SAMtools/1.13-GCC-10.3.0
 samtools tview bams/WE0025.dedup.bam ref/UU_Cfam_GSD_1.0.chr5.fa
 ```
@@ -157,6 +158,7 @@ code haplotypeCaller.sh
 #SBATCH --time=3:00:00
 #SBATCH --mem=8G
 #SBATCH --cpus-per-task=2
+#SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
 #SBATCH --array=1-3
@@ -205,6 +207,7 @@ code jointGenotype.sh
 #SBATCH --chdir=.
 #SBATCH --time=1:00:00
 #SBATCH --mem=8G
+#SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
 #SBATCH --output=genotype_%j.out
@@ -244,6 +247,7 @@ Each variant has quality annotations: how many reads support it, whether they co
 #SBATCH --chdir=.
 #SBATCH --time=1:00:00
 #SBATCH --mem=4G
+#SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
 #SBATCH --output=filter_%j.out
@@ -288,6 +292,7 @@ A position number means nothing to a biologist. We want to know: **which gene, a
 #SBATCH --chdir=.
 #SBATCH --time=1:00:00
 #SBATCH --mem=8G
+#SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
 #SBATCH --output=snpEff_%j.out
