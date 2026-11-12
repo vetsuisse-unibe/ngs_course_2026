@@ -1,9 +1,9 @@
 <!--
 INSTRUCTOR NOTES (not rendered on the page)
-Students need small paired FASTQ files for the three affected dogs in /data/courses/courseB/EFNB3/fastq_subset/:
-  WE0025_R1.fastq.gz WE0025_R2.fastq.gz
-  WE0028_R1.fastq.gz WE0028_R2.fastq.gz
-  WE0029_R1.fastq.gz WE0029_R2.fastq.gz
+Students use the chr5 reads of the three affected dogs in /data/courses/courseB/EFNB3/fastq_chr5/:
+  WE0025_chr5_R1.fastq.gz WE0025_chr5_R2.fastq.gz
+  WE0028_chr5_R1.fastq.gz WE0028_chr5_R2.fastq.gz
+  WE0029_chr5_R1.fastq.gz WE0029_chr5_R2.fastq.gz
 A few million read pairs each is enough (e.g. the reads extracted for the chr5 region, see variant calling notes).
 Check before the course: clusterstate.sh still exists. Course reservation (one node): account and reservation class-26980-ws-2026, valid during and after class hours.
 Facts for question 5.3/5.4 (ENA, checked 2026-10-15): WE0028 run ERR12042749 = 467,919,136 reads, ~70.6 Gb, 21.5 GB of FASTQ; ~29x coverage.
@@ -185,10 +185,10 @@ Questions:
 
 ## 5. Count the puppies' reads
 
-Now a real job. How many reads were sequenced for each puppy? We have a small subset of each dog's reads for the course:
+Now a real job. How many reads were sequenced for each puppy? For the course we use only the reads from **chromosome 5**, where the puppies' disease variant lies:
 
 ```shell
-ls -lh /data/courses/courseB/EFNB3/fastq_subset/
+ls -lh /data/courses/courseB/EFNB3/fastq_chr5/
 ```
 
 Each dog has two files, R1 and R2: the two ends of the same DNA fragments (**paired-end** sequencing).
@@ -196,7 +196,7 @@ Each dog has two files, R1 and R2: the two ends of the same DNA fragments (**pai
 Look at the first read of one file. A FASTQ file has **4 lines per read**: a name, the sequence, a `+` line and the quality of each base.
 
 ```shell
-zcat /data/courses/courseB/EFNB3/fastq_subset/WE0025_R1.fastq.gz | head -n 4
+zcat /data/courses/courseB/EFNB3/fastq_chr5/WE0025_chr5_R1.fastq.gz | head -n 4
 ```
 
 So the number of reads in a file is its number of lines divided by 4. Counting the lines of big files takes a while, so we let a compute node do it.
@@ -212,7 +212,7 @@ This time we write the SLURM options **inside** the script, on lines starting wi
 #SBATCH --time=00:30:00
 #SBATCH --output=countReads.out
 
-for FILE in /data/courses/courseB/EFNB3/fastq_subset/*.fastq.gz
+for FILE in /data/courses/courseB/EFNB3/fastq_chr5/*.fastq.gz
 do
     echo $FILE
     zcat $FILE | wc -l
@@ -270,7 +270,7 @@ DOGS=(WE0025 WE0028 WE0029)
 DOG=${DOGS[$SLURM_ARRAY_TASK_ID]}
 
 echo "Task $SLURM_ARRAY_TASK_ID is counting the lines of dog $DOG"
-zcat /data/courses/courseB/EFNB3/fastq_subset/${DOG}_R1.fastq.gz | wc -l
+zcat /data/courses/courseB/EFNB3/fastq_chr5/${DOG}_chr5_R1.fastq.gz | wc -l
 ```
 
 | Line | Meaning |
