@@ -1,9 +1,12 @@
 <!--
 INSTRUCTOR NOTES (not rendered on the page)
 Data: RNA-seq of healthy dogs from the preclinical body atlas, ENA PRJNA906635.
-6 dogs (1001, 1003, 1005 male; 1002, 1004, 1006 female) x 2 tissues (cervical spinal cord, dorsal root ganglia), 4 lanes each.
-Students use /data/courses/courseB/RNAseq/fastq_subset/<dog>_<tissue>_R1/R2.fastq.gz:
-the first 2 million read pairs of the first lane of each sample (prep/rnaseq_qc_subsets.slurm, run table prep/rnaseq_runs.tsv).
+6 dogs (1001, 1003, 1005 male; 1002, 1004, 1006 female) x 2 tissues (cervical spinal cord, dorsal root ganglia).
+Students use the full data in /data/courses/courseB/RNAseq/fastq_full/<dog>_<tissue>_R1/R2.fastq.gz
+(4 lanes merged per sample; prep/rnaseq_download_full.slurm with run table prep/rnaseq_runs.tsv).
+Each student analyses one sample: assign the 12 samples to the students (e.g. list on the board).
+Per sample: 45-75 million read pairs, ~2-3 GB per file. Estimated run times (not measured on the cluster):
+FastQC ~10-20 min per file, fastp ~10-20 min per sample with 4 threads. fastp output ~4-5 GB per student (home quota 20 GB).
 Checked 2026-11-12 on SRR22458006: reads 73-76 bp (already lightly trimmed), adapters ~0.01%, poly-G tails ~0.4% in R2,
 read names start with NB501995 (NextSeq 500) although ENA lists "Illumina HiSeq 2000"; quality characters E A / < 6 #.
 Module names below are from the 2025 course; check them with module avail before class:
@@ -12,11 +15,11 @@ Module names below are from the 2025 course; check them with module avail before
 
 # FASTQ Quality Control: Can We Trust These Reads?
 
-The puppies' disease variant lies in *EFNB3*, a gene active in the spinal cord. In the next days you will look at **gene expression** in healthy dogs: which genes are active in the **spinal cord**, and which in the **dorsal root ganglia** (DRG), where the sensory nerve cells sit?
+The puppies in our case have a problem in their spinal cord. To understand what is normal, you will now look at gene expression in healthy dogs. Which genes are active in the **spinal cord**, and which in the **dorsal root ganglia** (DRG), where the sensory nerve cells sit?
 
-We use RNA-seq data from a public atlas of healthy dog tissues ([ENA PRJNA906635](https://www.ebi.ac.uk/ena/browser/view/PRJNA906635)): spinal cord and DRG from the same **6 dogs** (3 males, 3 females). Before analysing them, we have to know whether the data are good. Today you look inside FASTQ files, check their quality with **FastQC**, and clean them with **fastp**.
+We use RNA-seq data from a public atlas of healthy dog tissues ([ENA PRJNA906635](https://www.ebi.ac.uk/ena/browser/view/PRJNA906635)): spinal cord and DRG from the same **6 dogs** (3 males, 3 females). That makes 12 samples, and **each of you analyses one of them**. Before analysing the data, we have to know whether it is good. Today you look inside FASTQ files, check their quality with **FastQC**, and clean them with **fastp**.
 
-## 1. Set up your working directory
+## 1. Set up your working directory and choose your sample
 
 Log in to the Bioinformatics server with VS Code and open a terminal.
 
@@ -26,35 +29,50 @@ mkdir -p dataPreProcess/scripts dataPreProcess/raw_fastqc dataPreProcess/clean_f
 cd dataPreProcess
 ```
 
-The reads are in a shared course directory. We don't copy them: a **link** makes them appear in your directory without using extra space.
+The reads are in a shared course directory. They are large, so we don't copy them: a **link** makes them appear in your directory without using extra space.
 
 ```shell
-ln -s /data/courses/courseB/RNAseq/fastq_subset raw_data
+ln -s /data/courses/courseB/RNAseq/fastq_full raw_data
 ls -lh raw_data/
 ```
 
-The file names tell you the dog and the tissue, for example `1001_SpinalCord_R1.fastq.gz`. For the course we use the first 2 million read pairs of each sample.
+These are the 12 samples. Each sample has two files, `<sample>_R1.fastq.gz` and `<sample>_R2.fastq.gz`:
+
+| Dog | Sex | Spinal cord | Dorsal root ganglia |
+|---|---|---|---|
+| 1001 | male | `1001_SpinalCord` | `1001_DRG` |
+| 1002 | female | `1002_SpinalCord` | `1002_DRG` |
+| 1003 | male | `1003_SpinalCord` | `1003_DRG` |
+| 1004 | female | `1004_SpinalCord` | `1004_DRG` |
+| 1005 | male | `1005_SpinalCord` | `1005_DRG` |
+| 1006 | female | `1006_SpinalCord` | `1006_DRG` |
+
+**Use the sample your instructor gives you.** Write its name down; you need it all day. In the examples below, replace `1003_DRG` with your sample.
 
 At the end of the day your directory will look like this:
 
 ```text
 course
 └── dataPreProcess
-    ├── raw_data -> /data/courses/courseB/RNAseq/fastq_subset
-    ├── raw_fastqc      FastQC reports of the raw reads
-    ├── clean_fastq     cleaned reads and fastp reports
+    ├── raw_data -> /data/courses/courseB/RNAseq/fastq_full
+    ├── raw_fastqc      FastQC reports of your raw reads
+    ├── clean_fastq     your cleaned reads and the fastp report
     └── scripts
 ```
 
 Questions:
 
-1. How many samples are there? How many files?
+1. How big are the two files of your sample?
 2. Why does each sample have two files, R1 and R2?
 
 ## 2. Look inside a FASTQ file
 
+A **variable** saves you from typing your sample name again and again:
+
 ```shell
-zcat raw_data/1001_SpinalCord_R1.fastq.gz | head -n 8
+SAMPLE=1003_DRG
+echo $SAMPLE
+zcat raw_data/${SAMPLE}_R1.fastq.gz | head -n 8
 ```
 
 Each read takes **4 lines**:
@@ -69,7 +87,7 @@ Each read takes **4 lines**:
 Now look at the first read of R2:
 
 ```shell
-zcat raw_data/1001_SpinalCord_R2.fastq.gz | head -n 4
+zcat raw_data/${SAMPLE}_R2.fastq.gz | head -n 4
 ```
 
 Questions:
@@ -108,32 +126,37 @@ Questions:
 
 FastQC checks many aspects of quality and writes an HTML report for each file. Documentation: https://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/
 
-First try it on a compute node yourself. Ask SLURM for an interactive session with 4 CPUs:
+Your files have tens of millions of reads, which takes FastQC a while. To try it out, we first make a small test file with the first 100,000 reads, on a compute node. Ask SLURM for an interactive session:
 
 ```shell
-srun --partition=pibu_el8 --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 --cpus-per-task=4 --mem=4G --time=01:00:00 --pty /bin/bash
+srun --partition=pibu_el8 --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 --cpus-per-task=1 --mem=4G --time=01:00:00 --pty /bin/bash
 ```
 
-Look at your prompt: which node are you on now?
+Look at your prompt: which node are you on now? You are in a new shell, so set your sample again:
 
 ```shell
+SAMPLE=1003_DRG
 cd ~/course/dataPreProcess
+zcat raw_data/${SAMPLE}_R1.fastq.gz | head -n 400000 > test_R1.fastq
 module load FastQC/0.11.9-Java-11
-fastqc --threads 4 -o raw_fastqc raw_data/1001_SpinalCord_R1.fastq.gz
-ls raw_fastqc
+fastqc test_R1.fastq
+ls
 exit
 ```
 
 Questions:
 
-1. Which files did FastQC write?
-2. After `exit`, which node are you on?
+1. Why `head -n 400000` for 100,000 reads?
+2. Which files did FastQC write?
+3. After `exit`, which node are you on?
+
+Delete the test files when you are done: `rm test_R1*`
 
 ## 4. FastQC as a batch job
 
-Running programs interactively is good for testing. For real work, write a job script: then the exact commands and settings are saved, and you can put them in the methods section of a paper.
+For the full files, write a job script: then the exact commands and settings are saved, and you can put them in the methods section of a paper.
 
-Save this as `run_fastqc.slurm` in `scripts`:
+Save this as `run_fastqc.slurm` in `scripts`, with **your** sample name:
 
 ```shell
 #!/bin/bash
@@ -141,15 +164,17 @@ Save this as `run_fastqc.slurm` in `scripts`:
 #SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=2
 #SBATCH --mem=4G
-#SBATCH --time=01:00:00
+#SBATCH --time=02:00:00
 #SBATCH --output=fastqc.out
+
+SAMPLE=1003_DRG
 
 module load FastQC/0.11.9-Java-11
 
 cd ~/course/dataPreProcess
-fastqc --threads 4 -o raw_fastqc raw_data/*.fastq.gz
+fastqc --threads 2 -o raw_fastqc raw_data/${SAMPLE}_R1.fastq.gz raw_data/${SAMPLE}_R2.fastq.gz
 ```
 
 ```shell
@@ -158,7 +183,7 @@ sbatch run_fastqc.slurm
 squeue -u $USER
 ```
 
-With 4 CPUs, FastQC works on 4 files at the same time. It takes a few minutes for all 24 files.
+With 2 CPUs, FastQC works on R1 and R2 at the same time. It takes about 10 to 20 minutes: a good moment for a coffee, or to read the FastQC help pages.
 
 ## 5. Read the FastQC reports
 
@@ -166,7 +191,7 @@ The reports are HTML files in `raw_fastqc`. To open them in VS Code:
 
 1. Install the **Live Preview** extension by Microsoft, if you don't have it: open the Extensions panel (Ctrl+Shift+X or Cmd+Shift+X), search for "Live Preview" and click Install.
 2. In the VS Code Explorer on the left, go to `course/dataPreProcess/raw_fastqc`.
-3. Right-click `1001_SpinalCord_R1_fastqc.html` and choose **Show Preview**.
+3. Right-click `<your sample>_R1_fastqc.html` and choose **Show Preview**.
 
 Start with **Basic Statistics** and **Per base sequence quality**.
 
@@ -178,13 +203,13 @@ Questions:
    - **Per base sequence content**: the first ~10 bases are uneven. RNA-seq libraries are made with random primers; why could that cause it?
    - **Sequence Duplication Levels**: many reads are duplicated. In RNA-seq, what does it mean when a gene is very highly expressed?
    - **Overrepresented sequences**: copy one sequence and search it with BLAST (https://blast.ncbi.nlm.nih.gov). Which gene does it come from?
-4. Compare a spinal cord report with a DRG report of the same dog. Do the tissues look different?
+4. Compare your report with a neighbour who has the **other tissue of the same dog**. Do the tissues look different?
 
 ## 6. Clean the reads with fastp
 
 **fastp** removes adapter sequences, cuts off poly-G tails and throws away reads of poor quality. It also writes its own HTML report, with the quality **before and after** cleaning. Documentation: https://github.com/OpenGene/fastp
 
-Save this as `fastp_clean.slurm` in `scripts`:
+Save this as `fastp_clean.slurm` in `scripts`, with **your** sample name:
 
 ```shell
 #!/bin/bash
@@ -193,13 +218,13 @@ Save this as `fastp_clean.slurm` in `scripts`:
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=4G
-#SBATCH --time=01:00:00
+#SBATCH --mem=8G
+#SBATCH --time=02:00:00
 #SBATCH --output=fastp.out
 
-module load fastp/0.23.4-GCC-10.3.0
+SAMPLE=1003_DRG
 
-SAMPLE=1001_SpinalCord
+module load fastp/0.23.4-GCC-10.3.0
 
 cd ~/course/dataPreProcess
 fastp \
@@ -235,16 +260,23 @@ sbatch fastp_clean.slurm
 squeue -u $USER
 ```
 
-Open `clean_fastq/1001_SpinalCord_fastp.html` with Live Preview.
+This also takes about 10 to 20 minutes. The cleaned reads take a few GB; you have 20 GB in your home directory. Check how much you use:
+
+```shell
+du -sh ~/course/dataPreProcess/clean_fastq
+du -sh ~
+```
+
+Open `clean_fastq/<your sample>_fastp.html` with Live Preview.
 
 Questions:
 
 1. How many reads were there before and after cleaning? What percentage was removed?
 2. How many reads had adapters? How many had poly-G tails?
 3. Compare the quality plots before and after filtering. What changed?
-4. Clean one more sample: change `SAMPLE=1001_SpinalCord` to `SAMPLE=1001_DRG` and submit the job again. Are the results similar?
+4. Write your sample name, number of reads and percentage removed in the class table. Which sample has the most reads removed? Is there a difference between spinal cord and DRG, or between male and female dogs?
 
-**For the brave.** Combine all FastQC and fastp reports into one page with **MultiQC**. Find the module name with `module avail MultiQC`, then run in an interactive session:
+**For the brave.** Combine your FastQC and fastp reports into one page with **MultiQC**. Find the module name with `module avail MultiQC`, then run in an interactive session:
 
 ```shell
 cd ~/course/dataPreProcess
@@ -252,7 +284,7 @@ module load <MultiQC module>
 multiqc raw_fastqc clean_fastq -o multiqc
 ```
 
-Open `multiqc/multiqc_report.html` with Live Preview. Do the spinal cord and DRG samples group together in the plots? Which sample has the lowest quality?
+Open `multiqc/multiqc_report.html` with Live Preview. MultiQC becomes really useful with many samples: at the end of the day we will look at a MultiQC report of the whole class.
 
 ## 7. Save your work with git
 
@@ -260,6 +292,7 @@ The FASTQ files and reports should not go into git. Add these lines to `~/course
 
 ```text
 # sequencing data and QC reports
+*.fastq
 *.fastq.gz
 *.fq.gz
 *_fastqc.html
