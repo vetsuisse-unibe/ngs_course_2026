@@ -9,6 +9,14 @@ Per sample: 45-75 million read pairs, ~2-3 GB per file. Estimated run times (not
 FastQC ~10-20 min per file, fastp ~10-20 min per sample with 4 threads. fastp output ~4-5 GB per student (home quota 20 GB).
 Checked 2026-11-12 on SRR22458006: reads 73-76 bp (already lightly trimmed), adapters ~0.01%, poly-G tails ~0.4% in R2,
 read names start with NB501995 (NextSeq 500) although ENA lists "Illumina HiSeq 2000"; quality characters E A / < 6 #.
+Answer to the dog 1002 questions (FastQC of all 24 files, checked 2026-11-13): dog 1002 (both tissues) differs from the other five dogs:
+  - Adapter Content: ~2.6% Nextera transposase sequence at the read ends (other dogs: ~0.01%); --detect_adapter_for_pe removes it
+  - Sequence Length Distribution: 57/60-76 bp (other dogs: 35-76 bp), so the reads were trimmed differently
+  - Per base sequence quality: mean Q ~21 at base 1 (other dogs ~31), which is why its 4 files FAIL this module; the rest of the read is fine
+  - fewer duplicates (~75-80% of reads remain after deduplication vs 47-71%)
+  Likely explanation: these libraries were prepared and/or sequenced in a different batch (different kit or run) than the other dogs.
+  Other FastQC findings, all samples: Per base sequence content FAIL (random priming, normal), poly-G reads up to ~3% (all-G, removed by --trim_poly_g and -l 36),
+  overrepresented sequences look like abundant small RNAs (e.g. 7SL/SRP RNA); fastp settings need no change.
 Module names below are from the 2025 course; check them with module avail before class:
   FastQC/0.11.9-Java-11, fastp/0.23.4-GCC-10.3.0, MultiQC (only used in "For the brave").
 -->
@@ -206,6 +214,7 @@ Questions:
    - **Sequence Duplication Levels**: many reads are duplicated. In RNA-seq, what does it mean when a gene is very highly expressed?
    - **Overrepresented sequences**: copy one sequence and search it with BLAST (https://blast.ncbi.nlm.nih.gov). Which gene does it come from?
 4. Compare the report with a neighbour who has the **other tissue of the same dog**. Do the tissues look different?
+5. **One dog is different.** Find the classmates who have samples of dog **1002** and compare their reports with those of another dog. Look at **Per base sequence quality** (the first base), **Sequence Length Distribution** and **Adapter Content** (which adapter type?). What differs? What could explain it, given that all 12 samples come from the same study?
 
 ## 6. Clean the reads with fastp
 
@@ -277,6 +286,7 @@ Questions:
 2. How many reads had adapters? How many had poly-G tails?
 3. Compare the quality plots before and after filtering. What changed?
 4. Write the sample name, number of reads and percentage removed in the class table. Which sample has the most reads removed? Is there a difference between spinal cord and DRG, or between male and female dogs?
+5. For dog 1002: open the **Adapters** section of the fastp report. Which adapter sequence did fastp detect? Is it the same one FastQC reported?
 
 **For the brave.** Combine the FastQC and fastp reports into one page with **MultiQC**. Find the module name with `module avail MultiQC`, then run in an interactive session:
 
