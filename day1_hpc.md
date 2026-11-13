@@ -17,7 +17,7 @@ The **cluster** has many computers (nodes) that can share the work, and a schedu
 
 Log in to the Bioinformatics server (login8.hpc.binf.unibe.ch) with the Remote SSH extension of Visual Studio Code, as in the Unix exercises, and open a terminal.
 
-The computer you are now on is the **login node**. It is shared by everybody and only meant for small tasks: editing files, copying, submitting jobs. **Real work runs on the compute nodes.**
+The computer we are now on is the **login node**. It is shared by everybody and only meant for small tasks: editing files, copying, submitting jobs. **Real work runs on the compute nodes.**
 
 ## 2. Explore the cluster
 
@@ -43,7 +43,7 @@ clusterstate.sh
 | `completing` | Node is finishing current jobs |
 | `down` | Node is offline or under maintenance |
 
-For this course, one node has been **reserved** for us. Every job you submit this week must use the **partition** (queue) `pibu_el8` with the course **account** and **reservation**, during and after class hours. To see the reservation and its node:
+For this course, one node has been **reserved** for us. Every job we submit this week must use the **partition** (queue) `pibu_el8` with the course **account** and **reservation**, during and after class hours. To see the reservation and its node:
 
 ```shell
 scontrol show reservation class-26980-ws-2026
@@ -57,7 +57,7 @@ Questions:
 
 ### Software modules
 
-Bioinformatics programs are installed as **modules**. You load the ones you need, in the version you need.
+Bioinformatics programs are installed as **modules**. We load the ones we need, in the version we need.
 
 ```shell
 module avail FastQC
@@ -77,11 +77,11 @@ module list
 Questions:
 
 1. Which versions of BWA are installed?
-2. Why is it important to write down the exact version of every program you use? (Think about the methods section of a paper.)
+2. Why is it important to write down the exact version of every program we use? (Think about the methods section of a paper.)
 
-## 3. Set up git to track your scripts
+## 3. Set up git to track our scripts
 
-Every analysis script you write this week will be saved with **git**. Git keeps every version of your scripts, so you can always see what you changed and go back to a version that worked.
+Every analysis script we write this week will be saved with **git**. Git keeps every version of our scripts, so we can always see what we changed and go back to a version that worked.
 
 ```shell
 git -v
@@ -89,7 +89,7 @@ git -v
 
 Git commands follow the structure `git verb options`: the verb tells git what to do (`add`, `commit`, …) and the options give the details.
 
-Tell git who you are. You only do this once per computer. Use your own name, and the email address you will use for your GitHub account later.
+We tell git who we are. This is needed only once per computer. Everyone uses their own name, and the email address they will use for their GitHub account later.
 
 ```shell
 git config --global user.name "Your Name"
@@ -128,7 +128,7 @@ git add .gitignore
 git commit -m "Add .gitignore for SLURM logs and sequencing data"
 ```
 
-At the end of the day your directory will look like this:
+At the end of the day our directory will look like this:
 
 ```text
 /home/<student>
@@ -137,7 +137,7 @@ At the end of the day your directory will look like this:
         └── scripts
 ```
 
-## 4. Your first job
+## 4. Our first job
 
 Open a new file in VS Code, paste these lines and save it as `first_job.sh` in `course/hpc-exercises/scripts`:
 
@@ -176,12 +176,12 @@ squeue -u $USER
 - `sbatch` submits a job script to SLURM.
 - `--partition=pibu_el8` is the queue the course node belongs to; `--account` and `--reservation` send the job to the course node reserved for us.
 - `-t 00:05:00` is the time limit (5 minutes).
-- `squeue -u $USER` lists your jobs. `$USER` is replaced by your user name.
+- `squeue -u $USER` lists our jobs. `$USER` is replaced by our user name.
 
 Questions:
 
 1. What is the job ID?
-2. Where did the output go? Compare the `hostname` in it with the one you got on the login node.
+2. Where did the output go? Compare the `hostname` in it with the one we got on the login node.
 3. Run `git status`. Is the new output file tracked? Why not?
 
 ## 5. Count the puppies' reads
@@ -202,7 +202,7 @@ zcat /data/courses/courseB/EFNB3/fastq_chr5/WE0025_chr5_R1.fastq.gz | head -n 4
 
 So the number of reads in a file is its number of lines divided by 4. Counting the lines of big files takes a while, so we let a compute node do it.
 
-This time we write the SLURM options **inside** the script, on lines starting with `#SBATCH`. Then you never have to remember them again. Save this as `count_reads.slurm` in `scripts`:
+This time we write the SLURM options **inside** the script, on lines starting with `#SBATCH`. Then we never have to remember them again. Save this as `count_reads.slurm` in `scripts`:
 
 ```shell
 #!/bin/bash
@@ -223,7 +223,7 @@ done
 
 | Line | Meaning |
 |---|---|
-| `--job-name` | a name you will recognise in `squeue` |
+| `--job-name` | a name we will recognise in `squeue` |
 | `--partition`, `--account`, `--reservation` | run on the course node reserved for us (in the `pibu_el8` queue) |
 | `--mem=1G` | 1 GB of memory |
 | `--time=00:30:00` | stop the job after 30 minutes |
@@ -248,7 +248,7 @@ Questions:
 
 1. How many reads does each file have? (Divide the number of lines by 4.)
 2. Do R1 and R2 of the same dog have the same number of reads? Why must they?
-3. How long is one read? Count the letters of the sequence line you looked at above.
+3. How long is one read? Count the letters of the sequence line we looked at above.
 4. The dog genome is about 2.4 billion bases long. The full data set of WE0028 has 70 billion bases. How many times was each position of its genome sequenced on average? This is called the **coverage**.
 
 ## 6. Do it in parallel: job arrays
@@ -298,13 +298,13 @@ cat countArray_*.out
 
 Questions:
 
-1. How many tasks do you see in `squeue`? What do their job IDs look like?
+1. How many tasks do we see in `squeue`? What do their job IDs look like?
 2. Does each task print the same number of lines for its dog's R1 file as `countReads.out` in section 5?
-3. To analyse 100 dogs, which two lines of the script would you change?
+3. To analyse 100 dogs, which two lines of the script would we change?
 
 ## 7. Interactive jobs
 
-Sometimes you want to work **on** a compute node yourself, for example to look at alignments with `samtools tview` on Day 2. `srun --pty` gives you a terminal on a compute node:
+Sometimes we want to work **on** a compute node ourselves, for example to look at alignments with `samtools tview` on Day 2. `srun --pty` gives us a terminal on a compute node:
 
 ```shell
 srun --partition=pibu_el8 --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 --cpus-per-task=1 --mem=2G --time=00:30:00 --pty /bin/bash
@@ -314,7 +314,7 @@ samtools --version | head -n 1
 exit
 ```
 
-Question: What changed in your prompt after `srun`, and after `exit`?
+Question: What changed in the prompt after `srun`, and after `exit`?
 
 ## 8. Cancel a job
 
@@ -348,30 +348,30 @@ scancel <job_id>
 squeue -u $USER
 ```
 
-`scancel -u $USER` cancels **all** your jobs. Use it with care!
+`scancel -u $USER` cancels **all** our jobs. Use it with care!
 
 Question: Look at `longJob.out`. Which `date` lines were printed?
 
-## 9. How much did your jobs use?
+## 9. How much did our jobs use?
 
-On a shared cluster, every CPU and gigabyte you request is blocked for everybody else, even if your job doesn't use it. `sacct` shows what your jobs requested and what they really used:
+On a shared cluster, every CPU and gigabyte we request is blocked for everybody else, even if our job doesn't use it. `sacct` shows what our jobs requested and what they really used:
 
 ```shell
 sacct -u $USER --format=JobID,JobName,State,Elapsed,ReqMem,MaxRSS,AllocCPUS,NodeList
 ```
 
 - `Elapsed`: how long the job ran
-- `ReqMem`: memory you requested
+- `ReqMem`: memory we requested
 - `MaxRSS`: the most memory the job actually used (shown on the `.batch` line)
 
 Questions:
 
 1. Look at the `Elapsed` time of `countReads` (all six files, one after the other) and of the three `countArray` tasks. Why did the array finish sooner?
-2. You requested 1 GB for the read counting. How much was used? What would be a sensible request next time?
+2. We requested 1 GB for the read counting. How much was used? What would be a sensible request next time?
 3. The course node has 128 CPUs and 512 GB of memory for about 10 students. What happens to the others if each student asks for 100 GB of memory for a job that needs 200 MB?
-4. What is the `State` of the job you cancelled?
+4. What is the `State` of the job we cancelled?
 
-## 10. Save your work
+## 10. Save our work
 
 ```shell
 cd ~/course
@@ -381,15 +381,15 @@ git log --oneline
 
 Questions:
 
-1. How many commits have you made today?
+1. How many commits have we made today?
 2. Which files does `git status` list as untracked? Why are the `.out` files not listed?
 
 ### Good habits
 
 1. Put the SLURM options in the script (`#SBATCH`), not on the command line.
-2. Request what your job needs, not more. Check with `sacct`.
+2. Request what the job needs, not more. Check with `sacct`.
 3. Never run heavy work on the login node.
-4. Commit your scripts before you run them, with a clear message.
+4. Commit the scripts before running them, with a clear message.
 5. Don't put data or log files in git.
 
-Tomorrow you will run real bioinformatics programs as SLURM jobs: quality control and mapping of the puppies' reads.
+Tomorrow we will run real bioinformatics programs as SLURM jobs: quality control and mapping of the puppies' reads.

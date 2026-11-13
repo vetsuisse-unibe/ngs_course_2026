@@ -15,28 +15,28 @@ Module versions are from last year's course; check they still exist (module avai
 
 ## The case
 
-A Weimaraner breeder contacts you. In a litter of **11 puppies, 3 cannot walk normally**. From 3–4 weeks of age they move their hind legs together, hopping like rabbits instead of walking one leg after the other. Their front legs are also affected, but less. Both parents and the other 8 puppies are healthy.
+A Weimaraner breeder contacts us. In a litter of **11 puppies, 3 cannot walk normally**. From 3–4 weeks of age they move their hind legs together, hopping like rabbits instead of walking one leg after the other. Their front legs are also affected, but less. Both parents and the other 8 puppies are healthy.
 
-**Watch the video of the affected puppies:** [Video S1 (MP4)](https://pmc.ncbi.nlm.nih.gov/articles/instance/12485594/bin/MDS-40-1883-s004.mp4), from the Supporting Information of the paper (Schwarz et al. 2025, CC BY-NC-ND 4.0). Depending on your browser, it plays directly or downloads first.
+**Watch the video of the affected puppies:** [Video S1 (MP4)](https://pmc.ncbi.nlm.nih.gov/articles/instance/12485594/bin/MDS-40-1883-s004.mp4), from the Supporting Information of the paper (Schwarz et al. 2025, CC BY-NC-ND 4.0). Depending on the browser, it plays directly or downloads first.
 
 The three puppies were examined by a veterinary neurologist and, after euthanasia, by veterinary pathologists. The brain, spinal cord, nerves, muscles and every other organ looked **completely normal**, even under the microscope with special stains.
 
-So the microscope found nothing. Is it genetic? You are the genomics team.
+So the microscope found nothing. Is it genetic? We are the genomics team.
 
 We will use the real whole-genome sequences of the three affected puppies (**WE0025, WE0028, WE0029**) from this study:
 
 > Schwarz C, Bartenschlager F, *et al.*, Leeb T. *EFNB3 frameshift variant in Weimaraner dogs with a condition resembling a congenital mirror movement disorder.* Movement Disorders 2025;40:1883–1891. [doi:10.1002/mds.30243](https://doi.org/10.1002/mds.30243)
 
-**Don't read the paper yet!** First find the answer yourself, as the authors had to.
+**Don't read the paper yet!** First we find the answer ourselves, as the authors had to.
 
-#### Questions before you start (write the answers in your README)
+#### Questions before we start (write the answers in the README)
 
-1. Healthy parents, 3 of 11 puppies affected. Which mode of inheritance does this suggest? Which other mode can't you exclude yet, given that all three affected puppies are male?
-2. If the disease is autosomal recessive, what **genotype** do you expect all three puppies to share at the causal variant? What genotype do you expect for the parents?
-3. Would you expect a healthy dog of a different breed to carry the causal variant in the homozygous state?
-4. Each dog genome carries ~4–5 million variants compared with the reference. How would you find the one that causes the disease?
+1. Healthy parents, 3 of 11 puppies affected. Which mode of inheritance does this suggest? Which other mode can't we exclude yet, given that all three affected puppies are male?
+2. If the disease is autosomal recessive, what **genotype** do we expect all three puppies to share at the causal variant? What genotype do we expect for the parents?
+3. Would we expect a healthy dog of a different breed to carry the causal variant in the homozygous state?
+4. Each dog genome carries ~4–5 million variants compared with the reference. How would we find the one that causes the disease?
 
-Keep your answers. You will check them at the end.
+Keep the answers. We will check them at the end.
 
 #### The plan
 
@@ -52,13 +52,13 @@ reads ─► BAM ─► mark duplicates ─► HaplotypeCaller (one gVCF per dog
               THE FUNNEL: from thousands of variants to one
 ```
 
-On Day 2 you mapped the reads of all of chromosome 5. To keep the variant calling fast, we only call variants in a **10 Mb region of chromosome 5** (`NC_049226.1:27,800,000-37,800,000`). Why this region? The authors genotyped all 13 family members on a SNP chip. Linkage analysis and autozygosity mapping (looking for long stretches where all three affected puppies are homozygous for the same haplotype) left only **5 regions on 5 chromosomes, 43.2 Mb in total**, where the causal variant can be. Our region lies inside one of them.
+On Day 2 we mapped the reads of all of chromosome 5. To keep the variant calling fast, we only call variants in a **10 Mb region of chromosome 5** (`NC_049226.1:27,800,000-37,800,000`). Why this region? The authors genotyped all 13 family members on a SNP chip. Linkage analysis and autozygosity mapping (looking for long stretches where all three affected puppies are homozygous for the same haplotype) left only **5 regions on 5 chromosomes, 43.2 Mb in total**, where the causal variant can be. Our region lies inside one of them.
 
 All positions refer to the **UU_Cfam_GSD_1.0** dog reference genome (a German Shepherd, also called CanFam4). Chromosome 5 is named `NC_049226.1` in this assembly.
 
 ## Setup
 
-We continue in the directory from Day 2, where your reference and your three BAM files are:
+We continue in the directory from Day 2, where our reference and our three BAM files are:
 
 ```shell
 cd ~/course/variantCalling
@@ -69,9 +69,9 @@ mkdir -p markduplicates gvcf variants funnel
 Questions:
 
 1. Which index files exist for the reference? Which program needs which index?
-2. Do you have a sorted BAM file and its `.bai` index for all three dogs?
+2. Do we have a sorted BAM file and its `.bai` index for all three dogs?
 
-If your mapping did not finish, copy the BAM files of your instructor: `cp /data/courses/courseB/EFNB3/fallback/*.sorted.bam* mapping/`
+If the mapping did not finish, copy the BAM files of the instructor: `cp /data/courses/courseB/EFNB3/fallback/*.sorted.bam* mapping/`
 
 ## Part 1: Mark duplicates
 
@@ -116,7 +116,7 @@ Questions:
 1. Open `markduplicates/WE0025.dup_metrics.txt`. What percentage of reads are duplicates (`PERCENT_DUPLICATION`)? Is it similar in all three dogs?
 2. Compare `samtools flagstat` of a sorted BAM and its dedup BAM. What changed and what didn't?
 
-## Part 2: Look before you call
+## Part 2: Look before we call
 
 Before running any variant caller, look at the reads. Open an interactive session and use `samtools tview` on one of the affected dogs:
 
@@ -131,10 +131,10 @@ Press `g` and type `NC_049226.1:32799600`. Scroll right slowly with the arrow ke
 
 Questions:
 
-1. Do you see a position where **all** reads disagree with the reference? Is it a substitution, an insertion or a deletion?
+1. Do we see a position where **all** reads disagree with the reference? Is it a substitution, an insertion or a deletion?
 2. What does it mean if (almost) all reads show the change, compared with about half of them?
 
-Don't tell your neighbours yet! Type `q` to quit and `exit` to leave the compute node.
+Don't tell the neighbours yet! Type `q` to quit and `exit` to leave the compute node.
 
 ## Part 3: One gVCF per dog (job array)
 
@@ -219,7 +219,7 @@ sbatch jointGenotype.slurm
 
 Questions:
 
-1. Which samples are in the VCF, and in which order? (`bcftools query -l WE.vcf.gz`). **Write down the order; you need it in Part 7.**
+1. Which samples are in the VCF, and in which order? (`bcftools query -l WE.vcf.gz`). **Write down the order; we need it in Part 7.**
 2. Why genotype the dogs together instead of using the three single-dog VCFs?
 
 ## Part 5: Hard filtering
@@ -267,7 +267,7 @@ gatk MergeVcfs -I WE.flt.snps.vcf.gz -I WE.flt.indels.vcf.gz -O WE.flt.vcf.gz
 sbatch filter.slurm
 ```
 
-Question: Look at a few lines with `zcat ../variants/WE.flt.vcf.gz | grep -v "^#" | head`. Where do you see whether a variant passed?
+Question: Look at a few lines with `zcat ../variants/WE.flt.vcf.gz | grep -v "^#" | head`. Where do we see whether a variant passed?
 
 ## Part 6: What does each variant do? (snpEff)
 
@@ -316,7 +316,7 @@ Questions:
 
 ## Part 7: The funnel, from thousands of variants to one
 
-This is the heart of the exercise. At each step, write the number of remaining variants in your README. Before each step, **predict** whether it will remove many or few variants.
+This is the heart of the exercise. At each step, write the number of remaining variants in the README. Before each step, **predict** whether it will remove many or few variants.
 
 ```shell
 cd ~/course/variantCalling/funnel
@@ -340,7 +340,7 @@ bcftools view -H step2.pass.vcf.gz | wc -l
 
 **Step 3: Fits the recessive model**
 
-All three affected puppies must be **homozygous for the alternative allele** (`"AA"` in bcftools). `GT[0]`, `GT[1]`, `GT[2]` are the three samples in the order you wrote down in Part 4.
+All three affected puppies must be **homozygous for the alternative allele** (`"AA"` in bcftools). `GT[0]`, `GT[1]`, `GT[2]` are the three samples in the order we wrote down in Part 4.
 
 ```shell
 bcftools view -i 'GT[0]="AA" && GT[1]="AA" && GT[2]="AA"' -Oz -o step3.recessive.vcf.gz step2.pass.vcf.gz
@@ -373,7 +373,7 @@ cut -f 1-5 step5.candidates.txt
 
 Fill in the funnel:
 
-| Step | Filter | Variants left (your region) | Paper (whole genome) |
+| Step | Filter | Variants left (our region) | Paper (whole genome) |
 |---|---|---|---|
 | 0 | SNP chip linkage ∩ autozygosity | 10 Mb region | 5 regions, 43.2 Mb |
 | 1 | All variant calls | | |
@@ -385,12 +385,12 @@ Fill in the funnel:
 Questions:
 
 1. Which step removed the most variants? Which step was the most *informative*?
-2. Do the numbers match your predictions?
+2. Do the numbers match our predictions?
 3. Step 4 used control dogs of **many different breeds**, not just Weimaraners. Why is that still useful? Could it ever remove the true causal variant?
 
-## Part 8: Meet your candidate
+## Part 8: Meet our candidate
 
-Look at the annotation of your candidate(s). The `ANN` field holds one entry per transcript, separated by commas:
+Look at the annotation of our candidate(s). The `ANN` field holds one entry per transcript, separated by commas:
 
 ```shell
 bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%ANN\n' step4.private.vcf.gz \
@@ -403,8 +403,8 @@ Questions:
 
 1. Which gene is it? What kind of variant (SNP, insertion, deletion)? How many bases?
 2. What is the predicted effect on the protein? Why does a change of this size have such a drastic effect? (Hint: how many bases is a codon?)
-3. Compare with what you saw in `tview` in Part 2. Is it the same position?
-4. Check the genotypes and read depths of all three dogs (replace `<POS>` with your candidate's position):
+3. Compare with what we saw in `tview` in Part 2. Is it the same position?
+4. Check the genotypes and read depths of all three dogs (replace `<POS>` with the candidate's position):
 
 ```shell
 bcftools query -H -f '%POS\t%REF\t%ALT[\t%GT:%AD]\n' -r NC_049226.1:<POS> step4.private.vcf.gz
@@ -413,7 +413,7 @@ bcftools query -H -f '%POS\t%REF\t%ALT[\t%GT:%AD]\n' -r NC_049226.1:<POS> step4.
 
 #### Look at it in IGV
 
-Open IGV with the chromosome 5 genome you loaded on Day 2 (**Genomes → Load Genome from File…** → `dog_chr5.fa`). Download the three **dedup** BAM files and their `.bai` files from `markduplicates/` (right-click → **Download** in VS Code), load them with **File → Load from File…**, and go to `NC_049226.1:32,799,580-32,799,680`.
+Open IGV with the chromosome 5 genome we loaded on Day 2 (**Genomes → Load Genome from File…** → `dog_chr5.fa`). Download the three **dedup** BAM files and their `.bai` files from `markduplicates/` (right-click → **Download** in VS Code), load them with **File → Load from File…**, and go to `NC_049226.1:32,799,580-32,799,680`.
 
 1. Do all reads in all three dogs show the variant?
 2. Is the region repetitive or low-complexity? Could this be an alignment artefact?
@@ -423,10 +423,10 @@ Open IGV with the chromosome 5 genome you loaded on Day 2 (**Genomes → Load Ge
 
 A variant that passes every filter is only a **candidate**. Now read about the gene:
 
-1. **OMIA** (Online Mendelian Inheritance in Animals): search https://omia.org for your gene. Is it already known in dogs?
+1. **OMIA** (Online Mendelian Inheritance in Animals): search https://omia.org for our gene. Is it already known in dogs?
 2. **Mouse knockouts**: search the gene at https://www.informatics.jax.org (MGI) and open "Phenotypes". What happens to mice without this gene? Compare with the puppy video.
 3. **Function**: read the gene summary on https://www.ncbi.nlm.nih.gov/gene or GeneCards. Where in the body is the protein made, and when? What does a "midline barrier" in the spinal cord do?
-4. **Evolution**: search NCBI Gene for this gene in chicken (*Gallus gallus*) or zebra finch. What do you find? Why might losing this gene be an **advantage** for a bird? (Think about how wings move compared with legs.)
+4. **Evolution**: search NCBI Gene for this gene in chicken (*Gallus gallus*) or zebra finch. What do we find? Why might losing this gene be an **advantage** for a bird? (Think about how wings move compared with legs.)
 5. **The protein**: the full protein has a signal peptide, a receptor-binding domain, a transmembrane domain and a short cytoplasmic tail. Using the protein change from Part 8, which domains does the mutant protein lose?
 
 #### Rule out the known disease
@@ -439,13 +439,13 @@ Weimaraners already have a known recessive disease with a hopping gait: **spinal
 
 ## Part 10: Report to the breeder
 
-Write a short report (5–8 sentences, plain language, no jargon) to the breeder in your README. It must answer:
+Write a short report (5–8 sentences, plain language, no jargon) to the breeder in the README. It must answer:
 
 1. Is the disease genetic? What is the cause (gene, type of variant), in words a dog breeder understands?
 2. How is it inherited? Why were the parents healthy?
 3. What are the parents' genotypes, almost certainly? What fraction of their puppies would be expected to be affected if they are mated again?
 4. The 8 healthy littermates: what is the chance that each of them is a carrier? (Careful: it is not 1/2!)
-5. What do you recommend for breeding? Should carriers be excluded from breeding altogether?
+5. What do we recommend for breeding? Should carriers be excluded from breeding altogether?
 
 #### For the brave: design the DNA test
 
@@ -457,13 +457,13 @@ Reverse: TCTCATAGTGGGGGCAGAAG
 ```
 1. Find the forward primer in the reference. The reference uses lowercase letters for repeats, so `grep -i` ignores the case: `samtools faidx ~/course/variantCalling/refIdx/dog_chr5.fa NC_049226.1:32799000-32800500 | grep -v ">" | tr -d '\n' | grep -oib TGGACACACCTGGATTCTGA`
 2. The reverse primer binds the other strand. Make its reverse complement with `echo TCTCATAGTGGGGGCAGAAG | rev | tr ACGT TGCA` and find it in the same way.
-3. How long is the PCR product from a normal dog? From an affected dog? Could you tell them apart on an agarose gel? What about a carrier?
+3. How long is the PCR product from a normal dog? From an affected dog? Could we tell them apart on an agarose gel? What about a carrier?
 
 The authors found **3 affected, 13 carriers and 118 normal** dogs among the 134 Weimaraners. Many of them were relatives of the litter. Why does this make 13/134 an **overestimate** of the carrier frequency in the breed?
 
-## Part 11: Check your predictions, then read the paper
+## Part 11: Check our predictions, then read the paper
 
-Go back to your answers from the beginning. Which were right? Now read the paper (open access): https://doi.org/10.1002/mds.30243. [Video S1](https://pmc.ncbi.nlm.nih.gov/articles/instance/12485594/bin/MDS-40-1883-s004.mp4) is in its Supporting Information.
+Go back to the answers from the beginning. Which were right? Now read the paper (open access): https://doi.org/10.1002/mds.30243. [Video S1](https://pmc.ncbi.nlm.nih.gov/articles/instance/12485594/bin/MDS-40-1883-s004.mp4) is in its Supporting Information.
 
 #### Journal club: is it really a "mirror movement disorder"?
 
@@ -473,14 +473,14 @@ The authors named the disease after a human condition, congenital mirror movemen
 
 The authors replied: https://doi.org/10.1002/mds.70000
 
-Read the comment (it is one page) and discuss in your group:
+Read the comment (it is one page) and discuss in the group:
 
 1. What is the difference between a hopping gait and a mirror movement?
 2. The commenters checked *EFNB3* in 59 human CMM patients and found nothing. Does that mean the dog finding is wrong?
 3. Horses with a *DMRT3* variant can pace or tölt instead of trotting. How does that relate to the puppies?
 4. Why does the name of a disease matter?
 
-## Add your work to git
+## Add our work to git
 
 The `.gitignore` from Day 2 already excludes BAM files. Make sure VCF files and reports are ignored too: add these lines to `~/course/.gitignore` if they are missing:
 
@@ -498,4 +498,4 @@ git commit -m "Add EFNB3 variant calling workflow and case notes"
 git push
 ```
 
-Your README should now contain: your predictions, the filled funnel table, your candidate variant, and your report to the breeder.
+The README should now contain: the predictions, the filled funnel table, the candidate variant, and the report to the breeder.

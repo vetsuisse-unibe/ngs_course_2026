@@ -19,13 +19,13 @@ chr5 GTF: 1,871 genes, 1,041 protein-coding; longest gene DAB1 (1,027,070 bp).
 
 In this practical we log in to the Bioinformatics server (login8.hpc.binf.unibe.ch) and do all the exercises there.
 
-To log in to the Bioinformatics cluster you need to be connected to the unibe network via VPN or eduroam.
+To log in to the Bioinformatics cluster we need to be connected to the unibe network via VPN or eduroam.
 
 ### VPN
 Log in to the unibe VPN server using FortiConnect (https://tinyurl.com/yxj8ovpd).
 
 ### eduroam
-If you are connected to the eduroam network you don't need the VPN.
+If we are connected to the eduroam network, we don't need the VPN.
 
 ### SSH into the Bioinformatics server
 After connecting to either the VPN or eduroam, use Visual Studio Code's Remote SSH extension to access the server.
@@ -48,14 +48,14 @@ Find your login and password in the students-passwords text file in the ILIAS re
 6. Click connect and enter the password at the prompt.
 ![Image of VSC-5](images/vsc-5.png)
 
-7. Open a new terminal from the Terminal menu. You should see a window like the one below.
+7. Open a new terminal from the Terminal menu. We should see a window like the one below.
 ![Image of VSC-6](images/vsc-6.png)
 
-#### Please ask for help any time you don't understand the exercises.
+#### Please ask for help any time something in the exercises is unclear.
 
 Commands in grey blocks are typed at the Unix command line (the terminal window above).
 
-Words between angle brackets, like `<filename>`, must be replaced with a name of your choice (without the brackets).
+Words between angle brackets, like `<filename>`, must be replaced with a name of our choice (without the brackets).
 
 ## Part 1: First commands
 
@@ -65,14 +65,14 @@ Words between angle brackets, like `<filename>`, must be replaced with a name of
 whoami
 pwd
 ```
-`pwd` shows something like `/home/student36`. This is your **home** directory.
+`pwd` shows something like `/home/student36`. This is our **home** directory.
 
 *List the files in the directory*
 
 ```shell
 ls
 ```
-*Print text, the date, and the commands you typed so far*
+*Print text, the date, and the commands we typed so far*
 
 ```shell
 echo "Hello world"
@@ -87,7 +87,7 @@ man ls
 
 ## Part 2: Files and directories
 
-Let's create a small project directory as you would for the course data.
+Let's create a small project directory as we would for the course data.
 
 *Create a directory and go into it*
 
@@ -141,7 +141,7 @@ pwd
 cd
 pwd
 ```
-`..` means "one directory up". `cd` on its own always takes you home. When you are lost, type `pwd`.
+`..` means "one directory up". `cd` on its own always takes us home. When we are lost, we type `pwd`.
 
 ### Command options
 Most commands accept **options** that change what they do.
@@ -207,7 +207,7 @@ It is a tab-separated table. The column names are on the second line. To read th
 ```shell
 head -n 2 assembly_summary_refseq.txt | tail -n 1 | tr '\t' '\n' | nl | less
 ```
-Question: do you understand each step of this pipe? Run it piece by piece (first only `head -n 2 assembly_summary_refseq.txt`, then add `| tail -n 1`, and so on) to see what each command adds.
+Question: do we understand each step of this pipe? Let's run it piece by piece (first only `head -n 2 assembly_summary_refseq.txt`, then add `| tail -n 1`, and so on) to see what each command adds.
 
 #### Dog genomes
 Column 6 is the NCBI taxonomy ID; the dog's is 9615. Column 8 is the species name.
@@ -237,13 +237,13 @@ Questions:
 
 We will use the **UU_Cfam_GSD_1.0** assembly for the rest of the course.
 
-#### Your favourite organism
-Find the genome of the species **you** work with, or your favourite animal or plant. Search for its name with `grep` (`-i` ignores upper/lower case):
+#### Our favourite organisms
+Each of us finds the genome of the species we work with, or of a favourite animal or plant. Search for its name with `grep` (`-i` ignores upper/lower case):
 
 ```shell
 grep -i "felis catus" assembly_summary_refseq.txt | cut -f 8,9,16,26,28,36
 ```
-Column 36 is the number of protein-coding genes. Write down the species, genome size, GC % and number of protein-coding genes for your organism in the class table (link on ILIAS).
+Column 36 is the number of protein-coding genes. Write down the species, genome size, GC % and number of protein-coding genes for that organism in the class table (link on ILIAS).
 
 #### Statistics on all genomes
 How many genomes per group (column 25)? `tail -n +3` skips the two header lines.
@@ -281,7 +281,7 @@ awk -F'\t' '$25 == "invertebrate" { total++; if ($28+0 < 40) count++ } END { pri
 
 ## Part 4: Dog chromosome 5
 
-Now we look at the DNA itself. On Day 3 you will find the cause of the puppies' disease on **chromosome 5**. Copy the chromosome sequence:
+Now we look at the DNA itself. On Day 3 we will find the cause of the puppies' disease on **chromosome 5**. Copy the chromosome sequence:
 
 ```shell
 cd ~
@@ -318,9 +318,9 @@ grep -v ">" dog_chr5.fa | tr -cd 'Nn' | wc -c
 ```
 Questions:
 
-1. Are there about as many A as T, and as many C as G? Why would you expect that? (Hint: two strands.)
+1. Are there about as many A as T, and as many C as G? Why would we expect that? (Hint: two strands.)
 2. Calculate the GC % of chromosome 5. Does it match the genome-wide GC of the assembly in Part 3?
-3. N means "unknown base" (a gap in the assembly). This genome was assembled with long reads. Would you expect many or few Ns?
+3. N means "unknown base" (a gap in the assembly). This genome was assembled with long reads. Would we expect many or few Ns?
 
 *Upper and lower case.* Look at a few sequence lines from the middle of the chromosome:
 
@@ -342,9 +342,9 @@ awk '!/^>/{gc+=gsub(/[gGcC]/,""); at+=gsub(/[aAtT]/,"")} END{printf "%.2f%%\n", 
 ```
 
 ### A question to think about until Day 3
-On Day 3 you will find that the puppies carry a variant in a gene called *EFNB3*. Go to https://www.ncbi.nlm.nih.gov/gene and search for *EFNB3* in human, mouse, dog and chicken (*Gallus gallus*). What do you notice for the chicken? Birds move their wings **together**, while dogs move their legs **one after the other**. Could that be related?
+On Day 3 we will find that the puppies carry a variant in a gene called *EFNB3*. Go to https://www.ncbi.nlm.nih.gov/gene and search for *EFNB3* in human, mouse, dog and chicken (*Gallus gallus*). What do we notice for the chicken? Birds move their wings **together**, while dogs move their legs **one after the other**. Could that be related?
 
-## Save your work
+## Save our work
 ```shell
 history > ~/unix_day1_history.txt
 ```

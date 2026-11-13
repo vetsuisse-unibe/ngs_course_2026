@@ -13,9 +13,9 @@ Module names are from the 2025 course (SAMtools/1.13-GCC-10.3.0 confirmed); chec
 
 Each FASTQ file is a huge pile of short DNA pieces, without any information on where in the genome they come from. **Mapping** finds the place in the reference genome where each read fits best. Only then can we compare the puppies' DNA with the reference and find their variants on Day 3.
 
-We map the reads of the three affected puppies (WE0025, WE0028, WE0029) to **chromosome 5** of the dog reference genome (UU_Cfam_GSD_1.0), the chromosome you explored on Day 1. Using one chromosome keeps the run times short.
+We map the reads of the three affected puppies (WE0025, WE0028, WE0029) to **chromosome 5** of the dog reference genome (UU_Cfam_GSD_1.0), the chromosome we explored on Day 1. Using one chromosome keeps the run times short.
 
-## 1. Set up your working directory
+## 1. Set up our working directory
 
 ```shell
 cd ~/course
@@ -37,7 +37,7 @@ cp /data/courses/courseB/UnixEx/dog_chr5.fa refIdx/
 ls -lh refIdx/
 ```
 
-At the end of the day your directory will look like this:
+At the end of the day our directory will look like this:
 
 ```text
 course
@@ -55,7 +55,7 @@ Questions:
 
 ## 2. Index the reference genome
 
-To find the right place for millions of reads quickly, the mapping program needs an **index** of the reference, much like the index at the back of a book. You build it once and can use it for every mapping to the same reference.
+To find the right place for millions of reads quickly, the mapping program needs an **index** of the reference, much like the index at the back of a book. We build it once and can use it for every mapping to the same reference.
 
 We make three indexes, each for different programs:
 
@@ -104,7 +104,7 @@ cat ../refIdx/dog_chr5.fa.fai
 Questions:
 
 1. Which files were created? Which one is the biggest?
-2. The `.fai` file has one line per sequence. What do the first two columns tell you?
+2. The `.fai` file has one line per sequence. What do the first two columns tell us?
 
 ## 3. Map the reads
 
@@ -158,7 +158,7 @@ samtools index mapping/${DOG}.sorted.bam
 | `-m 1G` | memory per sorting thread |
 | `samtools index` | make a `.bai` index, so programs can jump to any position in the BAM |
 
-**Read groups** matter as soon as you analyse several samples together. On Day 3, GATK uses the `SM` (sample) name to know which reads belong to which dog:
+**Read groups** matter as soon as we analyse several samples together. On Day 3, GATK uses the `SM` (sample) name to know which reads belong to which dog:
 
 | Tag | Meaning | Here |
 |---|---|---|
@@ -179,7 +179,7 @@ Mapping takes roughly 15 to 30 minutes per dog. The three tasks run at the same 
 Questions:
 
 1. Why is the time limit (`--time`) much longer than the expected run time?
-2. While you wait: open the BWA manual (http://bio-bwa.sourceforge.net/bwa.shtml) and find what `-t` does. What else could you change with options?
+2. While we wait: open the BWA manual (http://bio-bwa.sourceforge.net/bwa.shtml) and find what `-t` does. What else could we change with options?
 
 ## 4. Check the mapping
 
@@ -195,7 +195,7 @@ samtools view WE0025.sorted.bam | head -n 3
 
 Questions:
 
-1. Where in the header do you find your read group?
+1. Where in the header do we find our read group?
 2. Each read line has 11 columns plus extra tags. Find the columns for the chromosome, the position, the mapping quality and the CIGAR string (for example `100M`). What does `M` mean? (Look up the SAM format: https://samtools.github.io/hts-specs/SAMv1.pdf, section 1.4.)
 
 ### Mapping statistics
@@ -210,7 +210,7 @@ done
 cat WE0025_flagstat.txt
 ```
 
-`samtools coverage` tells you how much of the chromosome is covered by reads, and how deeply:
+`samtools coverage` tells us how much of the chromosome is covered by reads, and how deeply:
 
 ```shell
 samtools coverage WE0025.sorted.bam
@@ -257,7 +257,7 @@ Type `q` to quit, and `exit` to leave the compute node.
 
 ### IGV
 
-**IGV** (Integrative Genomics Viewer) shows alignments graphically on your own computer. Download these files to one folder on your computer, with right-click → **Download** in the VS Code Explorer:
+**IGV** (Integrative Genomics Viewer) shows alignments graphically on our own computers. Download these files to one folder on the computer, with right-click → **Download** in the VS Code Explorer:
 
 - `refIdx/dog_chr5.fa` and `refIdx/dog_chr5.fa.fai`
 - `mapping/WE0025.sorted.bam` and `mapping/WE0025.sorted.bam.bai`, and the same two files for WE0028 and WE0029
@@ -276,7 +276,7 @@ Questions:
 2. Find a variant position. Do all three dogs have the same genotype there?
 3. Right-click on a read and choose **Color alignments by → read strand**. Are the variant bases on both strands?
 
-## 6. Save your work with git
+## 6. Save our work with git
 
 BAM files and index files are far too large for git. Add these lines to `~/course/.gitignore`:
 
@@ -297,13 +297,13 @@ git status
 git commit -m "Ignore reference and alignment files"
 ```
 
-Question: Would you track `WE0025_flagstat.txt` in git? Why or why not?
+Question: Would we track `WE0025_flagstat.txt` in git? Why or why not?
 
 ### What did we learn?
 
 1. Mapping finds where each read belongs; an index of the reference makes it fast.
 2. Pipes avoid writing large intermediate files.
 3. Read groups label every read with its sample, which GATK needs on Day 3.
-4. Always check the mapping (flagstat, coverage) before you call variants.
+4. Always check the mapping (flagstat, coverage) before calling variants.
 
-On Day 3 you use your three BAM files to find the variant that makes the puppies hop.
+On Day 3 we use our three BAM files to find the variant that makes the puppies hop.
