@@ -2,7 +2,7 @@
 INSTRUCTOR NOTES (not rendered on the page)
 Data: RNA-seq of healthy dogs from the preclinical body atlas, ENA PRJNA906635.
 6 dogs (1001, 1003, 1005 male; 1002, 1004, 1006 female) x 2 tissues (cervical spinal cord, dorsal root ganglia).
-Students use the full data in /data/courses/courseB/RNAseq/fastq_full/<dog>_<tissue>_R1/R2.fastq.gz
+Students use the full data in /data/courses/courseB/RNA-seq/fastq_full/<dog>_<tissue>_R1/R2.fastq.gz
 (4 lanes merged per sample; prep/rnaseq_download_full.slurm with run table prep/rnaseq_runs.tsv).
 Each student analyses one sample: assign the 12 samples to the students (e.g. list on the board).
 Per sample: 45-75 million read pairs, ~2-3 GB per file. Estimated run times (not measured on the cluster):
@@ -40,7 +40,7 @@ cd dataPreProcess
 The reads are in a shared course directory. They are large, so we don't copy them: a **link** makes them appear in our directory without using extra space.
 
 ```shell
-ln -s /data/courses/courseB/RNAseq/fastq_full raw_data
+ln -s /data/courses/courseB/RNA-seq/fastq_full raw_data
 ls -lh raw_data/
 ```
 
@@ -62,7 +62,7 @@ At the end of the day our directory will look like this:
 ```text
 course
 └── dataPreProcess
-    ├── raw_data -> /data/courses/courseB/RNAseq/fastq_full
+    ├── raw_data -> /data/courses/courseB/RNA-seq/fastq_full
     ├── raw_fastqc      FastQC reports of the raw reads
     ├── clean_fastq     the cleaned reads and the fastp report
     └── scripts

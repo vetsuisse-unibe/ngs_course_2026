@@ -2,10 +2,10 @@
 INSTRUCTOR NOTES (not rendered on the page)
 Data: RNA-seq of 6 healthy dogs (1001, 1003, 1005 male; 1002, 1004, 1006 female), spinal cord and DRG, ENA PRJNA906635.
 Shared files needed (made with the scripts in prep/):
-  /data/courses/courseB/RNAseq/reference/hisat2/UU_Cfam_GSD_1.0.*.ht2   rnaseq_reference.slurm
-  /data/courses/courseB/RNAseq/reference/UU_Cfam_GSD_1.0.gtf            rnaseq_reference.slurm (NCBI release 106; gene_id = gene symbol)
+  /data/courses/courseB/RNA-seq/reference/hisat2/UU_Cfam_GSD_1.0_ROSY.*.ht2   rnaseq_reference.slurm
+  /data/courses/courseB/RNA-seq/reference/UU_Cfam_GSD_1.0_ROSY.sorted.gtf            ROSY GTF: gene_id = symbol_N (e.g. ENPP1_3); the "gene" attribute is the plain symbol, so featureCounts uses -g gene
   data/dog_SC_DRG_counts.tsv and data/dog_SC_DRG_samples.tsv in THIS repository (copied from
-  /data/courses/courseB/RNAseq/counts after rnaseq_map_full.slurm + rnaseq_featurecounts.slurm)
+  /data/courses/courseB/RNA-seq/counts after rnaseq_map_full.slurm + rnaseq_featurecounts.slurm)
 Part 1-2: each student selects one of the 12 samples and maps its full read pair (R1 + R2, 40-73 million pairs) from fastq_full, then counts it.
 These are the same raw files as in rnaseq_map_full.slurm, so a student's counts match that sample's column in the class count table.
 Estimates, not measured: HISAT2 ~30-60 min with 8 threads, ~8 GB memory; sorted BAM ~3-5 GB per student (home quota 20 GB).
@@ -39,7 +39,7 @@ read:          [ ──────── ]                     [ ──── ]
                one read, split over two exons
 ```
 
-The 12 samples are in the shared directory `/data/courses/courseB/RNAseq/fastq_full/`. **Each of us selects one read pair (one sample) from this table** and maps both of its files, R1 and R2:
+The 12 samples are in the shared directory `/data/courses/courseB/RNA-seq/fastq_full/`. **Each of us selects one read pair (one sample) from this table** and maps both of its files, R1 and R2:
 
 | Sample | Dog | Sex | Tissue | R1 file | R2 file | Read pairs |
 |---|---|---|---|---|---|---|
@@ -82,8 +82,8 @@ SAMPLE=1003_DRG
 module load HISAT2/2.2.1-gompi-2021a
 module load SAMtools/1.13-GCC-10.3.0
 
-INDEX=/data/courses/courseB/RNAseq/reference/hisat2/UU_Cfam_GSD_1.0
-FASTQ=/data/courses/courseB/RNAseq/fastq_full
+INDEX=/data/courses/courseB/RNA-seq/reference/hisat2/UU_Cfam_GSD_1.0_ROSY
+FASTQ=/data/courses/courseB/RNA-seq/fastq_full
 
 cd ~/course/rnaseq/mapping
 
@@ -141,11 +141,11 @@ srun --partition=pibu_el8 --account=class-26980-ws-2026 --reservation=class-2698
 SAMPLE=1003_DRG
 cd ~/course/rnaseq/mapping
 module load Subread/2.0.3-GCC-10.3.0
-GTF=/data/courses/courseB/RNAseq/reference/UU_Cfam_GSD_1.0.gtf
+GTF=/data/courses/courseB/RNA-seq/reference/UU_Cfam_GSD_1.0_ROSY.sorted.gtf
 
 for S in 0 1 2
 do
-    featureCounts -T 4 -p --countReadPairs -s $S -t exon -g gene_id \
+    featureCounts -T 4 -p --countReadPairs -s $S -t exon -g gene \
         -a $GTF -o ${SAMPLE}_counts_s$S.txt ${SAMPLE}.sorted.bam
 done
 
@@ -159,7 +159,7 @@ grep -E "Status|Assigned" ${SAMPLE}_counts_s*.txt.summary
 |---|---|
 | `-p --countReadPairs` | the reads are paired; count each **pair** once |
 | `-s` | strandedness: 0, 1 or 2 |
-| `-t exon -g gene_id` | count reads on exons, and add up the exons of each gene |
+| `-t exon -g gene` | count reads on exons, and add up the exons of each gene; `gene` is the gene symbol, e.g. `EFNB3` |
 | `-a` | the gene annotation |
 
 Questions:
