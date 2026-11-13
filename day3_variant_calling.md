@@ -1,15 +1,14 @@
 <!--
 INSTRUCTOR NOTES (not rendered on GitHub)
-This exercise expects the following prepared files under /data/courses/courseB/EFNB3/:
-  ref/UU_Cfam_GSD_1.0.chr5.fa (+ .fai, .dict, bwa index)       NCBI chr5 = NC_049226.1
-  ref/EFNB3_region.interval_list                               e.g. NC_049226.1:27800000-37800000
-  bams/WE0025.dedup.bam, WE0028.dedup.bam, WE0029.dedup.bam (+ .bai), region subsets
-  bams/WE0028.sorted.bam (+ .bai), un-deduplicated, for the MarkDuplicates step
-  gvcf/*.g.vcf.gz (+ .tbi)                                     fallback copies
-  controls/controls.sites.vcf.gz (+ .tbi)                      sites-only, normalised, same region, from the control genomes
-  snpeff/                                                      snpEff dataDir + config with database UU_Cfam_GSD_1.0_NCBI106
-  fallback/*.vcf.gz                                            fallback copies of every step's output
-Module versions below are the ones used in last year's course; check they still exist (module avail) and add a BCFtools module.
+Students continue in ~/course/variantCalling from the Day 2 mapping exercise:
+  refIdx/dog_chr5.fa (+ BWA index, .fai, .dict)   chromosome 5 of UU_Cfam_GSD_1.0, named NC_049226.1
+  mapping/WE0025.sorted.bam, WE0028.sorted.bam, WE0029.sorted.bam (+ .bai), all of chr5
+Shared files needed under /data/courses/courseB/EFNB3/:
+  controls/controls.sites.vcf.gz (+ .tbi)   sites-only, normalised (bcftools norm -m -any), chr named NC_049226.1, at least NC_049226.1:27800000-37800000, from the control genomes
+  snpeff/                                   snpEff dataDir + config with database UU_Cfam_GSD_1.0_NCBI106 (chromosome names must match NC_049226.1)
+  fallback/                                 copies for students whose jobs fail: <dog>.sorted.bam, <dog>.dedup.bam (+ .bai), <dog>.g.vcf.gz (+ .tbi), WE.vcf.gz, WE.flt.vcf.gz, WE.ann.vcf.gz
+Variant calling is restricted to NC_049226.1:27800000-37800000 (10 Mb around EFNB3) with -L to keep HaplotypeCaller fast.
+Module versions are from last year's course; check they still exist (module avail) and fill in the BCFtools module.
 -->
 
 # Variant Calling: Why Can't These Puppies Walk?
@@ -53,79 +52,81 @@ reads ─► BAM ─► mark duplicates ─► HaplotypeCaller (one gVCF per dog
               THE FUNNEL: from thousands of variants to one
 ```
 
-To keep run times short we only analyse a **10 Mb region of chromosome 5** (`NC_049226.1:27,800,000-37,800,000`). Why this region? The authors genotyped all 13 family members on a SNP chip. Linkage analysis and autozygosity mapping (looking for long stretches where all three affected puppies are homozygous for the same haplotype) left only **5 regions on 5 chromosomes, 43.2 Mb in total**, where the causal variant can be. Our region lies inside one of them.
+On Day 2 you mapped the reads of all of chromosome 5. To keep the variant calling fast, we only call variants in a **10 Mb region of chromosome 5** (`NC_049226.1:27,800,000-37,800,000`). Why this region? The authors genotyped all 13 family members on a SNP chip. Linkage analysis and autozygosity mapping (looking for long stretches where all three affected puppies are homozygous for the same haplotype) left only **5 regions on 5 chromosomes, 43.2 Mb in total**, where the causal variant can be. Our region lies inside one of them.
 
 All positions refer to the **UU_Cfam_GSD_1.0** dog reference genome (a German Shepherd, also called CanFam4). Chromosome 5 is named `NC_049226.1` in this assembly.
 
 ## Setup
 
+We continue in the directory from Day 2, where your reference and your three BAM files are:
+
 ```shell
-cd ~/course
-mkdir -p variantCalling_EFNB3/{markduplicates,gvcf,variants,funnel}
-cd variantCalling_EFNB3
-ln -s /data/courses/courseB/EFNB3/ref ref
-ln -s /data/courses/courseB/EFNB3/bams bams
-ls -l ref/ bams/
+cd ~/course/variantCalling
+ls -lh refIdx/ mapping/
+mkdir -p markduplicates gvcf variants funnel
 ```
+
 Questions:
 
-1. What does `ln -s` do, and why is it better than copying the reference into your directory?
-2. Which index files exist for the reference? Which program needs which index?
+1. Which index files exist for the reference? Which program needs which index?
+2. Do you have a sorted BAM file and its `.bai` index for all three dogs?
+
+If your mapping did not finish, copy the BAM files of your instructor: `cp /data/courses/courseB/EFNB3/fallback/*.sorted.bam* mapping/`
 
 ## Part 1: Mark duplicates
 
 PCR can copy the same DNA fragment many times. These duplicate reads are not independent evidence. If one of them carries a PCR error, the copies make the error look like a real variant. We **mark** duplicates rather than delete them, so the variant caller can ignore them while the information stays in the file.
 
-Two of the three dogs (WE0025, WE0029) were deposited in the European Nucleotide Archive as BAM files with duplicates already marked. You will mark duplicates for **WE0028** yourself.
+We mark duplicates in all three dogs with a job array. Save this as `markduplicates.slurm` in `scripts`:
 
 ```shell
-cd markduplicates
-code markduplicates.sh
-```
-
-```
 #!/bin/bash
-# Slurm options
-#SBATCH --mail-user=<your.email@example.com>
-#SBATCH --mail-type=fail,end
-#SBATCH --job-name="markDup"
-#SBATCH --chdir=.
-#SBATCH --time=1:00:00
-#SBATCH --mem=8G
+#SBATCH --job-name=markDup
 #SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
-#SBATCH --output=markDup_%j.out
-#SBATCH --error=markDup_%j.err
+#SBATCH --mem=8G
+#SBATCH --time=02:00:00
+#SBATCH --array=0-2
+#SBATCH --output=markDup_%a.out
 
 module load GATK/4.2.6.1-GCCcore-10.3.0-Java-11
 module load SAMtools/1.13-GCC-10.3.0
 
-gatk MarkDuplicates \
-    -I ../bams/WE0028.sorted.bam \
-    -O WE0028.dedup.bam \
-    -M WE0028.dup_metrics.txt
+DOGS=(WE0025 WE0028 WE0029)
+DOG=${DOGS[$SLURM_ARRAY_TASK_ID]}
 
-samtools index WE0028.dedup.bam
+cd ~/course/variantCalling/markduplicates
+gatk --java-options "-Xmx6g" MarkDuplicates \
+    -I ../mapping/${DOG}.sorted.bam \
+    -O ${DOG}.dedup.bam \
+    -M ${DOG}.dup_metrics.txt
+
+samtools index ${DOG}.dedup.bam
 ```
 
 ```shell
-sbatch markduplicates.sh
+cd ~/course/variantCalling/scripts
+sbatch markduplicates.slurm
+squeue -u $USER
 ```
+
 Questions:
 
-1. Open `WE0028.dup_metrics.txt`. What percentage of reads are duplicates (`PERCENT_DUPLICATION`)? Is that a lot?
-2. Compare `samtools flagstat` of the input and output BAM. What changed and what didn't?
+1. Open `markduplicates/WE0025.dup_metrics.txt`. What percentage of reads are duplicates (`PERCENT_DUPLICATION`)? Is it similar in all three dogs?
+2. Compare `samtools flagstat` of a sorted BAM and its dedup BAM. What changed and what didn't?
 
 ## Part 2: Look before you call
 
 Before running any variant caller, look at the reads. Open an interactive session and use `samtools tview` on one of the affected dogs:
 
 ```shell
-srun --partition=pibu_el8 --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 --time=1:00:00 --mem=4G --pty /bin/bash
+srun --partition=pibu_el8 --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 --time=01:00:00 --mem=4G --pty /bin/bash
+cd ~/course/variantCalling
 module load SAMtools/1.13-GCC-10.3.0
-samtools tview bams/WE0025.dedup.bam ref/UU_Cfam_GSD_1.0.chr5.fa
+samtools tview markduplicates/WE0025.dedup.bam refIdx/dog_chr5.fa
 ```
+
 Press `g` and type `NC_049226.1:32799600`. Scroll right slowly with the arrow keys.
 
 Questions:
@@ -139,83 +140,65 @@ Don't tell your neighbours yet! Type `q` to quit and `exit` to leave the compute
 
 GATK's recommended workflow calls variants **per sample** in **gVCF mode** first. A gVCF records the variants and also **how confident we are that every other position is reference**. Later we combine the gVCFs and genotype all dogs together. This is how large projects (the authors used 1,489 control genomes) add new dogs without re-analysing everything.
 
-Instead of writing three scripts, we use a **Slurm job array**: one script, run once for each dog. Slurm sets `$SLURM_ARRAY_TASK_ID` to 1, 2 or 3.
+Save this as `haplotypeCaller.slurm` in `scripts`:
 
 ```shell
-cd ../gvcf
-printf "../bams/WE0025.dedup.bam\n../markduplicates/WE0028.dedup.bam\n../bams/WE0029.dedup.bam\n" > bams.list
-cat bams.list
-code haplotypeCaller.sh
-```
-
-```
 #!/bin/bash
-# Slurm options
-#SBATCH --mail-user=<your.email@example.com>
-#SBATCH --mail-type=fail,end
-#SBATCH --job-name="hapCall"
-#SBATCH --chdir=.
-#SBATCH --time=3:00:00
-#SBATCH --mem=8G
-#SBATCH --cpus-per-task=2
+#SBATCH --job-name=hapCall
 #SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
-#SBATCH --array=1-3
-#SBATCH --output=hapCall_%A_%a.out
-#SBATCH --error=hapCall_%A_%a.err
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=8G
+#SBATCH --time=03:00:00
+#SBATCH --array=0-2
+#SBATCH --output=hapCall_%a.out
 
 module load GATK/4.2.6.1-GCCcore-10.3.0-Java-11
 
-# pick line number $SLURM_ARRAY_TASK_ID from bams.list
-BAM=$(sed -n "${SLURM_ARRAY_TASK_ID}p" bams.list)
-SAMPLE=$(basename $BAM .dedup.bam)
+DOGS=(WE0025 WE0028 WE0029)
+DOG=${DOGS[$SLURM_ARRAY_TASK_ID]}
 
+cd ~/course/variantCalling/gvcf
 gatk --java-options "-Xmx6g" HaplotypeCaller \
-    -R ../ref/UU_Cfam_GSD_1.0.chr5.fa \
-    -I $BAM \
-    -L ../ref/EFNB3_region.interval_list \
+    -R ../refIdx/dog_chr5.fa \
+    -I ../markduplicates/${DOG}.dedup.bam \
+    -L NC_049226.1:27800000-37800000 \
     -ERC GVCF \
-    -O ${SAMPLE}.g.vcf.gz
+    -O ${DOG}.g.vcf.gz
 ```
 
 ```shell
-sbatch haplotypeCaller.sh
+cd ~/course/variantCalling/scripts
+sbatch haplotypeCaller.slurm
 squeue -u $USER
 ```
+
 Questions:
 
-1. How many jobs do you see in `squeue`? What do `%A` and `%a` mean in the output file names?
-2. What does `-L` do? What would happen without it?
-3. Look inside a gVCF: `zcat WE0025.g.vcf.gz | grep -v "^#" | head`. What do the lines with `<NON_REF>` and an `END=` tag mean?
+1. What does `-L` do? What would happen without it?
+2. Look inside a gVCF: `zcat ../gvcf/WE0025.g.vcf.gz | grep -v "^#" | head`. What do the lines with `<NON_REF>` and an `END=` tag mean?
 
-If the jobs take too long, copy the gVCFs: `cp /data/courses/courseB/EFNB3/gvcf/*.g.vcf.gz* .`
+If the jobs take too long, copy the gVCFs: `cp /data/courses/courseB/EFNB3/fallback/*.g.vcf.gz* ~/course/variantCalling/gvcf/`
 
 ## Part 4: Joint genotyping
 
-```shell
-cd ../variants
-code jointGenotype.sh
-```
+Save this as `jointGenotype.slurm` in `scripts`:
 
-```
+```shell
 #!/bin/bash
-# Slurm options
-#SBATCH --mail-user=<your.email@example.com>
-#SBATCH --mail-type=fail,end
-#SBATCH --job-name="genotype"
-#SBATCH --chdir=.
-#SBATCH --time=1:00:00
-#SBATCH --mem=8G
+#SBATCH --job-name=genotype
 #SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
-#SBATCH --output=genotype_%j.out
-#SBATCH --error=genotype_%j.err
+#SBATCH --mem=8G
+#SBATCH --time=01:00:00
+#SBATCH --output=genotype.out
 
 module load GATK/4.2.6.1-GCCcore-10.3.0-Java-11
 
-REF=../ref/UU_Cfam_GSD_1.0.chr5.fa
+cd ~/course/variantCalling/variants
+REF=../refIdx/dog_chr5.fa
 
 # merge the three per-dog gVCFs into one multi-sample gVCF
 gatk CombineGVCFs -R $REF \
@@ -229,6 +212,11 @@ gatk GenotypeGVCFs -R $REF \
     -V WE.combined.g.vcf.gz \
     -O WE.vcf.gz
 ```
+
+```shell
+sbatch jointGenotype.slurm
+```
+
 Questions:
 
 1. Which samples are in the VCF, and in which order? (`bcftools query -l WE.vcf.gz`). **Write down the order; you need it in Part 7.**
@@ -238,22 +226,21 @@ Questions:
 
 Each variant has quality annotations: how many reads support it, whether they come from both DNA strands, how well the reads map, and so on. We flag variants that look like artefacts. SNPs and indels have different error profiles, so we filter them separately and then merge them again.
 
-```
+Save this as `filter.slurm` in `scripts`:
+
+```shell
 #!/bin/bash
-# Slurm options
-#SBATCH --mail-user=<your.email@example.com>
-#SBATCH --mail-type=fail,end
-#SBATCH --job-name="filter"
-#SBATCH --chdir=.
-#SBATCH --time=1:00:00
-#SBATCH --mem=4G
+#SBATCH --job-name=filter
 #SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
-#SBATCH --output=filter_%j.out
-#SBATCH --error=filter_%j.err
+#SBATCH --mem=4G
+#SBATCH --time=01:00:00
+#SBATCH --output=filter.out
 
 module load GATK/4.2.6.1-GCCcore-10.3.0-Java-11
+
+cd ~/course/variantCalling/variants
 
 gatk SelectVariants -V WE.vcf.gz -select-type SNP   -O WE.snps.vcf.gz
 gatk SelectVariants -V WE.vcf.gz -select-type INDEL -O WE.indels.vcf.gz
@@ -275,30 +262,32 @@ gatk VariantFiltration -V WE.indels.vcf.gz -O WE.flt.indels.vcf.gz \
 
 gatk MergeVcfs -I WE.flt.snps.vcf.gz -I WE.flt.indels.vcf.gz -O WE.flt.vcf.gz
 ```
-Save it as `filter.sh` and submit it with `sbatch filter.sh`.
 
-Question: Look at a few lines with `zcat WE.flt.vcf.gz | grep -v "^#" | head`. Where do you see whether a variant passed?
+```shell
+sbatch filter.slurm
+```
+
+Question: Look at a few lines with `zcat ../variants/WE.flt.vcf.gz | grep -v "^#" | head`. Where do you see whether a variant passed?
 
 ## Part 6: What does each variant do? (snpEff)
 
 A position number means nothing to a biologist. We want to know: **which gene, and what happens to the protein?** snpEff compares each variant to the gene annotation (NCBI annotation release 106 for UU_Cfam_GSD_1.0) and adds an `ANN` field with the predicted effect.
 
-```
+Save this as `snpeff.slurm` in `scripts`:
+
+```shell
 #!/bin/bash
-# Slurm options
-#SBATCH --mail-user=<your.email@example.com>
-#SBATCH --mail-type=fail,end
-#SBATCH --job-name="snpEff"
-#SBATCH --chdir=.
-#SBATCH --time=1:00:00
-#SBATCH --mem=8G
+#SBATCH --job-name=snpEff
 #SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
-#SBATCH --output=snpEff_%j.out
-#SBATCH --error=snpEff_%j.err
+#SBATCH --mem=8G
+#SBATCH --time=01:00:00
+#SBATCH --output=snpEff.out
 
 module load BCFtools  # check the exact module name with: module avail BCFtools
+
+cd ~/course/variantCalling/variants
 
 snpEff="apptainer exec -B $TMPDIR:/tmp -B /data/courses/courseB/EFNB3/snpeff /mnt/containers/apptainer/snpeff:5.2--hdfd78af_1 snpEff"
 
@@ -307,13 +296,18 @@ $snpEff ann -Xmx6g \
     -dataDir /data/courses/courseB/EFNB3/snpeff/data \
     -stats WE.snpEff.html \
     UU_Cfam_GSD_1.0_NCBI106 WE.flt.vcf.gz \
-    | bcftools norm -f ../ref/UU_Cfam_GSD_1.0.chr5.fa -m -any -Oz -o WE.ann.vcf.gz
+    | bcftools norm -f ../refIdx/dog_chr5.fa -m -any -Oz -o WE.ann.vcf.gz
 
 bcftools index -t WE.ann.vcf.gz
 ```
+
+```shell
+sbatch snpeff.slurm
+```
+
 `bcftools norm` splits sites with several alternative alleles into one line each and left-aligns indels. This lets us compare our variants with the control dogs in Part 7.
 
-Download `WE.snpEff.html` to your computer and open it in a browser.
+Open `variants/WE.snpEff.html` with Live Preview in VS Code, as on Day 2.
 
 Questions:
 
@@ -325,7 +319,7 @@ Questions:
 This is the heart of the exercise. At each step, write the number of remaining variants in your README. Before each step, **predict** whether it will remove many or few variants.
 
 ```shell
-cd ../funnel
+cd ~/course/variantCalling/funnel
 ln -s ../variants/WE.ann.vcf.gz* .
 module load BCFtools  # check the exact module name with: module avail BCFtools
 ```
@@ -419,11 +413,11 @@ bcftools query -H -f '%POS\t%REF\t%ALT[\t%GT:%AD]\n' -r NC_049226.1:<POS> step4.
 
 #### Look at it in IGV
 
-Download the three BAM files for the region around the candidate (links on ILIAS) and load them in IGV together with the UU_Cfam_GSD_1.0 genome. Go to `NC_049226.1:32,799,580-32,799,680`.
+Open IGV with the chromosome 5 genome you loaded on Day 2 (**Genomes → Load Genome from File…** → `dog_chr5.fa`). Download the three **dedup** BAM files and their `.bai` files from `markduplicates/` (right-click → **Download** in VS Code), load them with **File → Load from File…**, and go to `NC_049226.1:32,799,580-32,799,680`.
 
 1. Do all reads in all three dogs show the variant?
 2. Is the region repetitive or low-complexity? Could this be an alignment artefact?
-3. The gene track shows exons. In which exon is the variant?
+3. Look up the gene in NCBI Gene (https://www.ncbi.nlm.nih.gov/gene) for the dog. How many exons does it have, and in which exon is the variant?
 
 ## Part 9: Is it biologically plausible?
 
@@ -461,7 +455,7 @@ The authors genotyped 134 Weimaraners with PCR and Sanger sequencing using these
 Forward: TGGACACACCTGGATTCTGA
 Reverse: TCTCATAGTGGGGGCAGAAG
 ```
-1. Find the forward primer in the reference (`samtools faidx ref/UU_Cfam_GSD_1.0.chr5.fa NC_049226.1:32799000-32800500 | grep -v ">" | tr -d '\n' | grep -ob TGGACACACCTGGATTCTGA`).
+1. Find the forward primer in the reference. The reference uses lowercase letters for repeats, so `grep -i` ignores the case: `samtools faidx ~/course/variantCalling/refIdx/dog_chr5.fa NC_049226.1:32799000-32800500 | grep -v ">" | tr -d '\n' | grep -oib TGGACACACCTGGATTCTGA`
 2. The reverse primer binds the other strand. Make its reverse complement with `echo TCTCATAGTGGGGGCAGAAG | rev | tr ACGT TGCA` and find it in the same way.
 3. How long is the PCR product from a normal dog? From an affected dog? Could you tell them apart on an agarose gel? What about a carrier?
 
@@ -488,24 +482,20 @@ Read the comment (it is one page) and discuss in your group:
 
 ## Add your work to git
 
-```shell
-cd ~/course
-code .gitignore
-```
-Make sure the following are ignored (add them if missing):
+The `.gitignore` from Day 2 already excludes BAM files. Make sure VCF files and reports are ignored too: add these lines to `~/course/.gitignore` if they are missing:
 
-```
-*.bam
-*.bai
+```text
 *.vcf.gz
 *.vcf.gz.tbi
-*.g.vcf.gz
 *.html
 ```
 
 ```shell
-git add variantCalling_EFNB3/*/*.sh variantCalling_EFNB3/gvcf/bams.list README.md .gitignore
+cd ~/course
+git add .gitignore variantCalling/scripts README.md
+git status
 git commit -m "Add EFNB3 variant calling workflow and case notes"
 git push
 ```
+
 Your README should now contain: your predictions, the filled funnel table, your candidate variant, and your report to the breeder.

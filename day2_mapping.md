@@ -257,28 +257,17 @@ Type `q` to quit, and `exit` to leave the compute node.
 
 ### IGV
 
-**IGV** (Integrative Genomics Viewer) shows alignments graphically on your own computer. The BAM files are large, so first cut out a smaller region of 1 Mb on the cluster:
-
-```shell
-cd ~/course/variantCalling/mapping
-module load SAMtools/1.13-GCC-10.3.0
-for DOG in WE0025 WE0028 WE0029
-do
-    samtools view -b -o ${DOG}.region.bam ${DOG}.sorted.bam NC_049226.1:10000000-11000000
-    samtools index ${DOG}.region.bam
-done
-ls -lh *.region.bam*
-```
-
-Download to your computer, with right-click → **Download** in the VS Code Explorer:
+**IGV** (Integrative Genomics Viewer) shows alignments graphically on your own computer. Download these files to one folder on your computer, with right-click → **Download** in the VS Code Explorer:
 
 - `refIdx/dog_chr5.fa` and `refIdx/dog_chr5.fa.fai`
-- the three `.region.bam` files and their `.region.bam.bai` files
+- `mapping/WE0025.sorted.bam` and `mapping/WE0025.sorted.bam.bai`, and the same two files for WE0028 and WE0029
+
+Check the file sizes first with `ls -lh ~/course/variantCalling/mapping`: each BAM file is around 1 GB, so the download takes a while, especially over VPN.
 
 Then in IGV:
 
 1. **Genomes → Load Genome from File…** and choose `dog_chr5.fa`. (IGV's built-in dog genomes name the chromosome `chr5`, but our reference calls it `NC_049226.1`, so we load our own.)
-2. **File → Load from File…** and choose the three `.region.bam` files. Each needs its `.bai` file in the same folder.
+2. **File → Load from File…** and choose the three `.sorted.bam` files. Each needs its `.bai` file in the same folder.
 3. Type `NC_049226.1:10,000,000-10,001,000` in the search box and press Go.
 
 Questions:
