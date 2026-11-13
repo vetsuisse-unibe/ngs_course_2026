@@ -15,19 +15,19 @@ Module names from the 2025 course; check: HISAT2/2.2.1-gompi-2021a, SAMtools/1.1
 
 # RNA-seq: What Makes the Spinal Cord Different?
 
-On Day 2 you checked and cleaned the RNA-seq reads of your sample: spinal cord or dorsal root ganglia (DRG) from one of six healthy dogs. Today you find out **which genes are active**. First you map a part of your own reads to the dog genome and count how many reads fall on each gene. Then you compare all 12 samples in R to find the genes that differ between spinal cord and DRG.
+On Day 2 we checked and cleaned the RNA-seq reads of our samples: spinal cord or dorsal root ganglia (DRG) from one of six healthy dogs. Today we find out **which genes are active**. First we map a part of our own reads to the dog genome and count how many reads fall on each gene. Then we compare all 12 samples in R to find the genes that differ between spinal cord and DRG.
 
 Two quick reminders of the biology:
 
 - The **spinal cord** belongs to the central nervous system. It contains motor neurons, interneurons and their support cells, such as oligodendrocytes, which make the myelin around nerve fibres in the brain and spinal cord.
 - The **dorsal root ganglia** sit just outside the spinal cord. They contain the cell bodies of the **sensory** neurons (touch, pain, temperature, position) and Schwann cells, which make the myelin in the peripheral nervous system.
 
-Before you start, predict:
+Before we start, let's predict:
 
-1. Which kinds of genes do you expect to be more active in the spinal cord? Which in the DRG?
-2. The puppies' disease gene, *EFNB3*, matters most while the spinal cord develops. These dogs are adults. Do you expect it to be strongly expressed?
+1. Which kinds of genes do we expect to be more active in the spinal cord? Which in the DRG?
+2. The puppies' disease gene, *EFNB3*, matters most while the spinal cord develops. These dogs are adults. Do we expect it to be strongly expressed?
 
-## Part 1: Map your reads with HISAT2
+## Part 1: Map our reads with HISAT2
 
 RNA is spliced: the introns are removed, so one read can span two exons that lie thousands of bases apart in the genome. BWA, which we used for DNA, would fail on such reads. **HISAT2** is a **splice-aware** aligner: it can split a read across an intron.
 
@@ -37,7 +37,7 @@ read:          [ ──────── ]                     [ ──── ]
                one read, split over two exons
 ```
 
-Mapping all 50 to 75 million read pairs of your sample would take too long, so you map the first **5 million pairs** of your cleaned reads from Day 2. The full mapping of all 12 samples was done in advance; you use it in Part 3.
+Mapping all 50 to 75 million read pairs of a sample would take too long, so we map the first **5 million pairs** of our cleaned reads from Day 2. The full mapping of all 12 samples was done in advance; we use it in Part 3.
 
 ```shell
 cd ~/course
@@ -45,7 +45,7 @@ mkdir -p rnaseq/scripts rnaseq/mapping
 cd rnaseq
 ```
 
-Save this as `hisat2_map.slurm` in `scripts`, with **your** sample name:
+Save this as `hisat2_map.slurm` in `scripts`, with **your own** sample name:
 
 ```shell
 #!/bin/bash
@@ -85,11 +85,11 @@ rm ${SAMPLE}_5M_R1.fastq ${SAMPLE}_5M_R2.fastq
 |---|---|
 | `head -n 20000000` | the first 20 million lines = 5 million reads |
 | `hisat2 -x $INDEX` | the index of the whole dog genome, made in advance |
-| `-1`, `-2` | R1 and R2 of your read pairs |
+| `-1`, `-2` | R1 and R2 of the read pairs |
 | `--summary-file` | save the mapping statistics |
 | `\| samtools sort` | sort the mapped reads by position, as on Day 2 |
 
-If you don't have cleaned reads from Day 2, use the raw reads instead: `CLEAN=/data/courses/courseB/RNAseq/fastq_full`, and remove `.clean` from the two file names.
+If there are no cleaned reads from Day 2, we use the raw reads instead: `CLEAN=/data/courses/courseB/RNAseq/fastq_full`, and remove `.clean` from the two file names.
 
 ```shell
 cd ~/course/rnaseq/scripts
@@ -107,7 +107,7 @@ Questions:
 
 1. What is the **overall alignment rate**? How does it compare with the DNA mapping on Day 2?
 2. How many pairs aligned **concordantly exactly 1 time**, and how many **more than once**? What could make a read map to several places?
-3. Compare your numbers with your neighbours'. Are they similar for all samples?
+3. Let's compare the numbers between neighbours. Are they similar for all samples?
 
 ## Part 2: Count reads per gene
 
@@ -144,7 +144,7 @@ Questions:
 2. In a stranded library, one of `-s 1` or `-s 2` assigns about as many pairs as `-s 0`, and the other almost none. In an unstranded library, `-s 1` and `-s 2` each assign about half. Which is it here?
 3. Look at `counts_s0.txt.summary` (or the one that fits). Why are some pairs **Unassigned_NoFeatures**? Why are some **Unassigned_Ambiguity**?
 
-Now look at a few genes in your counts. Column 7 is the count:
+Now we look at a few genes in our counts. Column 7 is the count:
 
 ```shell
 grep -w -E "^(MOG|OLIG2|MPZ|PRPH|SCN10A|EFNB3)" counts_s0.txt | cut -f 1,7
@@ -155,7 +155,7 @@ Question: Write the counts in the class table. Do spinal cord and DRG samples di
 
 ## Part 3: Differential expression in R
 
-To compare the tissues properly, we use all 12 samples, mapped and counted in advance with the same steps as above (all reads, not only 5 million). We analyse them with **DESeq2** in RStudio on your own computer.
+To compare the tissues properly, we use all 12 samples, mapped and counted in advance with the same steps as above (all reads, not only 5 million). We analyse them with **DESeq2** in RStudio on our own computers.
 
 ### Install the packages (once)
 
@@ -218,7 +218,7 @@ Questions:
 
 1. How many genes were removed by the filter? Why remove genes with almost no reads?
 2. `log2FoldChange` > 0 means higher in which tissue?
-3. How many genes are significantly higher in spinal cord, and how many in DRG (adjusted p-value < 0.05)? Is that more or less than you expected?
+3. How many genes are significantly higher in spinal cord, and how many in DRG (adjusted p-value < 0.05)? Is that more or less than we expected?
 
 ### Do the samples group by tissue? (PCA)
 
@@ -242,7 +242,7 @@ Questions:
 
 ### Check the result with known markers
 
-Before you trust a gene list, check genes whose answer you know:
+Before we trust a gene list, we check genes whose answer we know:
 
 | Gene | Cell type | Expected in |
 |---|---|---|
@@ -274,7 +274,7 @@ res[markers, c("baseMean", "log2FoldChange", "padj")]
 Questions:
 
 1. Do the marker genes behave as expected? If not, what could be wrong?
-2. Is *EFNB3* expressed in adult spinal cord? In DRG? Does that fit what you know about its role during development?
+2. Is *EFNB3* expressed in adult spinal cord? In DRG? Does that fit what we know about its role during development?
 
 ### Volcano plot and heatmap
 
@@ -325,16 +325,16 @@ Questions:
 1. Which processes come up for the spinal cord? Which for the DRG? Do they fit the biology at the top of this page?
 2. Why do we give a `universe` (all tested genes) instead of all dog genes?
 
-### Save your results
+### Save our results
 
 ```r
 resdf <- resdf[order(resdf$padj), ]
 write.csv(resdf, "SpinalCord_vs_DRG_DESeq2.csv", row.names = FALSE)
 ```
 
-**For the brave.** Compare males and females: change the design to `~ dog + tissue` → `~ sex + tissue` and get `results(dds, contrast = c("sex", "male", "female"))`. Why can't you use `~ dog + sex + tissue`? (Hint: every dog has only one sex.) How many genes differ between the sexes? Our reference is a female dog: why can't Y-chromosome genes show up?
+**For the brave.** Compare males and females: change the design to `~ dog + tissue` → `~ sex + tissue` and get `results(dds, contrast = c("sex", "male", "female"))`. Why can't we use `~ dog + sex + tissue`? (Hint: every dog has only one sex.) How many genes differ between the sexes? Our reference is a female dog: why can't Y-chromosome genes show up?
 
-## Part 4: Save your work with git
+## Part 4: Save our work with git
 
 ```shell
 cd ~/course
@@ -342,12 +342,12 @@ git add rnaseq/scripts
 git commit -m "Add RNA-seq mapping script"
 ```
 
-Save your R script into the course repository too (for example `rnaseq/scripts/deseq2_SC_vs_DRG.R`), then commit and push it.
+We save the R script into the course repository too (for example `rnaseq/scripts/deseq2_SC_vs_DRG.R`), then commit and push it.
 
 ### What did we learn?
 
 1. RNA-seq reads need a splice-aware aligner such as HISAT2.
 2. featureCounts turns alignments into a count per gene; check the strandedness first.
 3. A paired design (`~ dog + tissue`) compares tissues within each animal.
-4. Check known marker genes before you trust a list of differentially expressed genes.
+4. Check known marker genes before trusting a list of differentially expressed genes.
 5. GO enrichment turns a gene list into biology.
