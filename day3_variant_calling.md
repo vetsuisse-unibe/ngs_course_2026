@@ -17,7 +17,7 @@ Module versions are from last year's course; check they still exist (module avai
 
 A Weimaraner breeder contacts you. In a litter of **11 puppies, 3 cannot walk normally**. From 3–4 weeks of age they move their hind legs together, hopping like rabbits instead of walking one leg after the other. Their front legs are also affected, but less. Both parents and the other 8 puppies are healthy.
 
-Watch the video of the affected puppies (Supporting Information **Video S1** of the paper; link at the end of this page).
+**Watch the video of the affected puppies:** [Video S1 (MP4)](https://pmc.ncbi.nlm.nih.gov/articles/instance/12485594/bin/MDS-40-1883-s004.mp4), from the Supporting Information of the paper (Schwarz et al. 2025, CC BY-NC-ND 4.0). Depending on your browser, it plays directly or downloads first.
 
 The three puppies were examined by a veterinary neurologist and, after euthanasia, by veterinary pathologists. The brain, spinal cord, nerves, muscles and every other organ looked **completely normal**, even under the microscope with special stains.
 
@@ -463,7 +463,7 @@ The authors found **3 affected, 13 carriers and 118 normal** dogs among the 134 
 
 ## Part 11: Check your predictions, then read the paper
 
-Go back to your answers from the beginning. Which were right? Now read the paper (open access): https://doi.org/10.1002/mds.30243. Video S1 is in the Supporting Information.
+Go back to your answers from the beginning. Which were right? Now read the paper (open access): https://doi.org/10.1002/mds.30243. [Video S1](https://pmc.ncbi.nlm.nih.gov/articles/instance/12485594/bin/MDS-40-1883-s004.mp4) is in its Supporting Information.
 
 #### Journal club: is it really a "mirror movement disorder"?
 
