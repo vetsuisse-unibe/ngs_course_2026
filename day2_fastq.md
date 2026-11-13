@@ -15,9 +15,9 @@ Module names below are from the 2025 course; check them with module avail before
 
 # FASTQ Quality Control: Can We Trust These Reads?
 
-The puppies in our case have a problem in their spinal cord. To understand what is normal, you will now look at gene expression in healthy dogs. Which genes are active in the **spinal cord**, and which in the **dorsal root ganglia** (DRG), where the sensory nerve cells sit?
+What makes the spinal cord different from the nerve tissue right next to it? Using RNA-seq from healthy dogs, you will compare the **spinal cord** with the **dorsal root ganglia** (DRG), which contain the sensory nerve cells, and find the genes that are active in one but not the other.
 
-We use RNA-seq data from a public atlas of healthy dog tissues ([ENA PRJNA906635](https://www.ebi.ac.uk/ena/browser/view/PRJNA906635)): spinal cord and DRG from the same **6 dogs** (3 males, 3 females). That makes 12 samples, and **each of you analyses one of them**. Before analysing the data, we have to know whether it is good. Today you look inside FASTQ files, check their quality with **FastQC**, and clean them with **fastp**.
+We use RNA-seq data from a public atlas of healthy dog tissues ([ENA PRJNA906635](https://www.ebi.ac.uk/ena/browser/view/PRJNA906635)): spinal cord and DRG from the same **6 dogs** (3 males, 3 females). That makes 12 samples, and **each of you analyses one of them**. Before analysing the data, we have to know whether it is good. Today we look inside FASTQ files, check their quality with **FastQC**, and clean them with **fastp**.
 
 ## 1. Set up your working directory and choose your sample
 
@@ -119,7 +119,9 @@ So `E` is 69 − 33 = **Q36**. Q tells you the chance that the base is wrong:
 
 Questions:
 
-1. Which quality characters do you see? Why do you think there are only a few different ones? (Hint: the NextSeq groups quality values into a few bins.)
+1. Which quality characters do you see? Why are there only a few different ones?
+
+   **Answer:** You see only a handful of characters: `E` (Q36), `A` (Q32), `<` (Q27), `6` (Q21), `/` (Q14) and `#` (Q2). The NextSeq does not report every possible quality value. It groups the values into a few **bins** and gives all bases in a bin the same score. This makes the files smaller and is precise enough for the analysis.
 2. What quality does the base `N` usually have?
 
 ## 3. FastQC, interactively
