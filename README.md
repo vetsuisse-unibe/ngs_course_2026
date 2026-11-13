@@ -16,6 +16,7 @@ This repository contains the exercises for the 2026 NGS course. This year the ex
 | 2 | FASTQ Quality Control: Can We Trust These Reads? | [day2_fastq.md](day2_fastq.md) |
 | 2 | Mapping: Where Do the Reads Belong? | [day2_mapping.md](day2_mapping.md) |
 | 3 | Variant Calling: Why Can't These Puppies Walk? | [day3_variant_calling.md](day3_variant_calling.md) |
+| 4 | RNA-seq: What Makes the Spinal Cord Different? | [day4_rnaseq.md](day4_rnaseq.md) |
 
 More exercises will be added during the course.
 
