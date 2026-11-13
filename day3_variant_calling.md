@@ -437,31 +437,7 @@ Weimaraners already have a known recessive disease with a hopping gait: **spinal
 2. The pathology was normal. Does that support or argue against spinal dysraphism?
 <!-- INSTRUCTOR: once the NKX2-8 c.449delinsTT position on UU_Cfam_GSD_1.0 is confirmed, add a bcftools/tview check here and include that region in the course BAMs. -->
 
-## Part 10: Report to the breeder
-
-Write a short report (5–8 sentences, plain language, no jargon) to the breeder in the README. It must answer:
-
-1. Is the disease genetic? What is the cause (gene, type of variant), in words a dog breeder understands?
-2. How is it inherited? Why were the parents healthy?
-3. What are the parents' genotypes, almost certainly? What fraction of their puppies would be expected to be affected if they are mated again?
-4. The 8 healthy littermates: what is the chance that each of them is a carrier? (Careful: it is not 1/2!)
-5. What do we recommend for breeding? Should carriers be excluded from breeding altogether?
-
-#### For the brave: design the DNA test
-
-The authors genotyped 134 Weimaraners with PCR and Sanger sequencing using these primers:
-
-```
-Forward: TGGACACACCTGGATTCTGA
-Reverse: TCTCATAGTGGGGGCAGAAG
-```
-1. Find the forward primer in the reference. The reference uses lowercase letters for repeats, so `grep -i` ignores the case: `samtools faidx ~/course/variantCalling/refIdx/dog_chr5.fa NC_049226.1:32799000-32800500 | grep -v ">" | tr -d '\n' | grep -oib TGGACACACCTGGATTCTGA`
-2. The reverse primer binds the other strand. Make its reverse complement with `echo TCTCATAGTGGGGGCAGAAG | rev | tr ACGT TGCA` and find it in the same way.
-3. How long is the PCR product from a normal dog? From an affected dog? Could we tell them apart on an agarose gel? What about a carrier?
-
-The authors found **3 affected, 13 carriers and 118 normal** dogs among the 134 Weimaraners. Many of them were relatives of the litter. Why does this make 13/134 an **overestimate** of the carrier frequency in the breed?
-
-## Part 11: Check our predictions, then read the paper
+## Part 10: Check our predictions, then read the paper
 
 Go back to the answers from the beginning. Which were right? Now read the paper (open access): https://doi.org/10.1002/mds.30243. [Video S1](https://pmc.ncbi.nlm.nih.gov/articles/instance/12485594/bin/MDS-40-1883-s004.mp4) is in its Supporting Information.
 
@@ -498,4 +474,4 @@ git commit -m "Add EFNB3 variant calling workflow and case notes"
 git push
 ```
 
-The README should now contain: the predictions, the filled funnel table, the candidate variant, and the report to the breeder.
+The README should now contain: the predictions, the filled funnel table, and the candidate variant.
