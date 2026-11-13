@@ -6,7 +6,8 @@ Shared files needed (made with the scripts in prep/):
   /data/courses/courseB/RNAseq/reference/UU_Cfam_GSD_1.0.gtf            rnaseq_reference.slurm (NCBI release 106; gene_id = gene symbol)
   data/dog_SC_DRG_counts.tsv and data/dog_SC_DRG_samples.tsv in THIS repository (copied from
   /data/courses/courseB/RNAseq/counts after rnaseq_map_full.slurm + rnaseq_featurecounts.slurm)
-Part 1-2: each student maps the first 5 million cleaned read pairs of their own Day 2 sample (fastp output) and counts them.
+Part 1-2: each student maps the full cleaned read pair (R1 + R2, 40-73 million pairs) of their own Day 2 sample (fastp output) and counts it.
+Estimates, not measured: HISAT2 ~30-60 min with 8 threads, ~8 GB memory; sorted BAM ~3-5 GB per student (home quota 20 GB).
 Part 3: DESeq2 in RStudio on the students' laptops, with the full count table read from GitHub.
 Library strandedness is not given in the metadata; students test it in Part 2, and rnaseq_featurecounts.slurm picks it automatically.
 The reference is a female German Shepherd: no Y chromosome, and XIST is not annotated under that name, so sex genes cannot be used as a check.
@@ -37,7 +38,7 @@ read:          [ ──────── ]                     [ ──── ]
                one read, split over two exons
 ```
 
-Mapping all 50 to 75 million read pairs of a sample would take too long, so we map the first **5 million pairs** of our cleaned reads from Day 2. The full mapping of all 12 samples was done in advance; we use it in Part 3.
+We map the **complete read pair** of our own sample: the cleaned R1 and R2 files from Day 2, with 40 to 73 million read pairs per sample. The other samples were mapped the same way in advance; in Part 3 we use all 12 together.
 
 ```shell
 cd ~/course
@@ -53,9 +54,9 @@ Save this as `hisat2_map.slurm` in `scripts`, with **your own** sample name:
 #SBATCH --partition=pibu_el8
 #SBATCH --account=class-26980-ws-2026
 #SBATCH --reservation=class-26980-ws-2026
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
-#SBATCH --time=02:00:00
+#SBATCH --time=04:00:00
 #SBATCH --output=hisat2.out
 
 SAMPLE=1003_DRG
@@ -68,28 +69,30 @@ CLEAN=~/course/dataPreProcess/clean_fastq
 
 cd ~/course/rnaseq/mapping
 
-# the first 5 million read pairs (4 lines per read)
-zcat $CLEAN/${SAMPLE}_R1.clean.fastq.gz | head -n 20000000 > ${SAMPLE}_5M_R1.fastq
-zcat $CLEAN/${SAMPLE}_R2.clean.fastq.gz | head -n 20000000 > ${SAMPLE}_5M_R2.fastq
-
-hisat2 -p 4 -x $INDEX \
-    -1 ${SAMPLE}_5M_R1.fastq -2 ${SAMPLE}_5M_R2.fastq \
+hisat2 -p 8 -x $INDEX \
+    -1 $CLEAN/${SAMPLE}_R1.clean.fastq.gz \
+    -2 $CLEAN/${SAMPLE}_R2.clean.fastq.gz \
     --summary-file ${SAMPLE}.hisat2.txt \
   | samtools sort -@ 4 -m 1G -o ${SAMPLE}.sorted.bam -
 samtools index ${SAMPLE}.sorted.bam
-
-rm ${SAMPLE}_5M_R1.fastq ${SAMPLE}_5M_R2.fastq
 ```
 
 | Part | Meaning |
 |---|---|
-| `head -n 20000000` | the first 20 million lines = 5 million reads |
-| `hisat2 -x $INDEX` | the index of the whole dog genome, made in advance |
-| `-1`, `-2` | R1 and R2 of the read pairs |
+| `hisat2 -p 8` | map with 8 CPUs |
+| `-x $INDEX` | the index of the whole dog genome, made in advance |
+| `-1`, `-2` | R1 and R2 of the read pairs; HISAT2 reads the gzipped files directly |
 | `--summary-file` | save the mapping statistics |
 | `\| samtools sort` | sort the mapped reads by position, as on Day 2 |
 
 If there are no cleaned reads from Day 2, we use the raw reads instead: `CLEAN=/data/courses/courseB/RNAseq/fastq_full`, and remove `.clean` from the two file names.
+
+The sorted BAM file of a full sample takes a few GB, and each of us has 20 GB in the home directory. Let's check the free space first, and if needed delete the chr5 BAM files from Day 2. The dedup BAM files from Day 3 contain the same reads:
+
+```shell
+du -sh ~
+rm ~/course/variantCalling/mapping/*.sorted.bam*
+```
 
 ```shell
 cd ~/course/rnaseq/scripts
@@ -97,7 +100,7 @@ sbatch hisat2_map.slurm
 squeue -u $USER
 ```
 
-When the job has finished (roughly 10 to 20 minutes):
+When the job has finished (roughly 30 to 60 minutes; a good moment to read about featureCounts below):
 
 ```shell
 cat ~/course/rnaseq/mapping/*.hisat2.txt
@@ -155,7 +158,7 @@ Question: Write the counts in the class table. Do spinal cord and DRG samples di
 
 ## Part 3: Differential expression in R
 
-To compare the tissues properly, we use all 12 samples, mapped and counted in advance with the same steps as above (all reads, not only 5 million). We analyse them with **DESeq2** in RStudio on our own computers.
+To compare the tissues properly, we use all 12 samples, mapped and counted in advance with the same steps as above. We analyse them with **DESeq2** in RStudio on our own computers.
 
 ### Install the packages (once)
 
