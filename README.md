@@ -14,6 +14,7 @@ This repository contains the exercises for the 2026 NGS course. This year the ex
 | 1 | UNIX: Getting to Know the Dog Genome | [day1_unix.md](day1_unix.md) |
 | 1 | HPC: Putting the Cluster to Work | [day1_hpc.md](day1_hpc.md) |
 | 2 | FASTQ Quality Control: Can We Trust These Reads? | [day2_fastq.md](day2_fastq.md) |
+| 2 | Mapping: Where Do the Reads Belong? | [day2_mapping.md](day2_mapping.md) |
 | 3 | Variant Calling: Why Can't These Puppies Walk? | [day3_variant_calling.md](day3_variant_calling.md) |
 
 More exercises will be added during the course.

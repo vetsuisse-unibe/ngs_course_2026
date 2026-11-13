@@ -322,4 +322,4 @@ Questions:
 3. Some FastQC warnings are normal for RNA-seq. Understand them before you "fix" them.
 4. Clean reads with a job script, so the exact settings are saved for the methods section of your paper.
 
-Next, you map the reads to the dog reference genome and find out which genes are active in the spinal cord and in the DRG.
+Later in the course, you map these RNA-seq reads to the dog reference genome and find out which genes are active in the spinal cord and in the DRG.
