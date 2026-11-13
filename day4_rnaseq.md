@@ -6,7 +6,8 @@ Shared files needed (made with the scripts in prep/):
   /data/courses/courseB/RNAseq/reference/UU_Cfam_GSD_1.0.gtf            rnaseq_reference.slurm (NCBI release 106; gene_id = gene symbol)
   data/dog_SC_DRG_counts.tsv and data/dog_SC_DRG_samples.tsv in THIS repository (copied from
   /data/courses/courseB/RNAseq/counts after rnaseq_map_full.slurm + rnaseq_featurecounts.slurm)
-Part 1-2: each student maps the full cleaned read pair (R1 + R2, 40-73 million pairs) of their own Day 2 sample (fastp output) and counts it.
+Part 1-2: each student selects one of the 12 samples and maps its full read pair (R1 + R2, 40-73 million pairs) from fastq_full, then counts it.
+These are the same raw files as in rnaseq_map_full.slurm, so a student's counts match that sample's column in the class count table.
 Estimates, not measured: HISAT2 ~30-60 min with 8 threads, ~8 GB memory; sorted BAM ~3-5 GB per student (home quota 20 GB).
 Part 3: DESeq2 in RStudio on the students' laptops, with the full count table read from GitHub.
 Library strandedness is not given in the metadata; students test it in Part 2, and rnaseq_featurecounts.slurm picks it automatically.
@@ -38,7 +39,24 @@ read:          [ ──────── ]                     [ ──── ]
                one read, split over two exons
 ```
 
-We map the **complete read pair** of our own sample: the cleaned R1 and R2 files from Day 2, with 40 to 73 million read pairs per sample. The other samples were mapped the same way in advance; in Part 3 we use all 12 together.
+The 12 samples are in the shared directory `/data/courses/courseB/RNAseq/fastq_full/`. **Each of us selects one read pair (one sample) from this table** and maps both of its files, R1 and R2:
+
+| Sample | Dog | Sex | Tissue | R1 file | R2 file | Read pairs |
+|---|---|---|---|---|---|---|
+| `1001_SpinalCord` | 1001 | male | spinal cord | `1001_SpinalCord_R1.fastq.gz` | `1001_SpinalCord_R2.fastq.gz` | 73.1 M |
+| `1001_DRG` | 1001 | male | DRG | `1001_DRG_R1.fastq.gz` | `1001_DRG_R2.fastq.gz` | 63.7 M |
+| `1002_SpinalCord` | 1002 | female | spinal cord | `1002_SpinalCord_R1.fastq.gz` | `1002_SpinalCord_R2.fastq.gz` | 43.9 M |
+| `1002_DRG` | 1002 | female | DRG | `1002_DRG_R1.fastq.gz` | `1002_DRG_R2.fastq.gz` | 45.3 M |
+| `1003_SpinalCord` | 1003 | male | spinal cord | `1003_SpinalCord_R1.fastq.gz` | `1003_SpinalCord_R2.fastq.gz` | 56.9 M |
+| `1003_DRG` | 1003 | male | DRG | `1003_DRG_R1.fastq.gz` | `1003_DRG_R2.fastq.gz` | 52.8 M |
+| `1004_SpinalCord` | 1004 | female | spinal cord | `1004_SpinalCord_R1.fastq.gz` | `1004_SpinalCord_R2.fastq.gz` | 52.1 M |
+| `1004_DRG` | 1004 | female | DRG | `1004_DRG_R1.fastq.gz` | `1004_DRG_R2.fastq.gz` | 39.9 M |
+| `1005_SpinalCord` | 1005 | male | spinal cord | `1005_SpinalCord_R1.fastq.gz` | `1005_SpinalCord_R2.fastq.gz` | 55.0 M |
+| `1005_DRG` | 1005 | male | DRG | `1005_DRG_R1.fastq.gz` | `1005_DRG_R2.fastq.gz` | 60.4 M |
+| `1006_SpinalCord` | 1006 | female | spinal cord | `1006_SpinalCord_R1.fastq.gz` | `1006_SpinalCord_R2.fastq.gz` | 45.3 M |
+| `1006_DRG` | 1006 | female | DRG | `1006_DRG_R1.fastq.gz` | `1006_DRG_R2.fastq.gz` | 59.4 M |
+
+Write down the chosen sample; we need its name in all scripts below. In Part 3 we analyse all 12 samples together.
 
 ```shell
 cd ~/course
@@ -46,7 +64,7 @@ mkdir -p rnaseq/scripts rnaseq/mapping
 cd rnaseq
 ```
 
-Save this as `hisat2_map.slurm` in `scripts`, with **your own** sample name:
+Save this as `hisat2_map.slurm` in `scripts`, with the name of **the sample you selected**:
 
 ```shell
 #!/bin/bash
@@ -65,13 +83,13 @@ module load HISAT2/2.2.1-gompi-2021a
 module load SAMtools/1.13-GCC-10.3.0
 
 INDEX=/data/courses/courseB/RNAseq/reference/hisat2/UU_Cfam_GSD_1.0
-CLEAN=~/course/dataPreProcess/clean_fastq
+FASTQ=/data/courses/courseB/RNAseq/fastq_full
 
 cd ~/course/rnaseq/mapping
 
 hisat2 -p 8 -x $INDEX \
-    -1 $CLEAN/${SAMPLE}_R1.clean.fastq.gz \
-    -2 $CLEAN/${SAMPLE}_R2.clean.fastq.gz \
+    -1 $FASTQ/${SAMPLE}_R1.fastq.gz \
+    -2 $FASTQ/${SAMPLE}_R2.fastq.gz \
     --summary-file ${SAMPLE}.hisat2.txt \
   | samtools sort -@ 4 -m 1G -o ${SAMPLE}.sorted.bam -
 samtools index ${SAMPLE}.sorted.bam
@@ -85,7 +103,7 @@ samtools index ${SAMPLE}.sorted.bam
 | `--summary-file` | save the mapping statistics |
 | `\| samtools sort` | sort the mapped reads by position, as on Day 2 |
 
-If there are no cleaned reads from Day 2, we use the raw reads instead: `CLEAN=/data/courses/courseB/RNAseq/fastq_full`, and remove `.clean` from the two file names.
+Anyone who selected their own Day 2 sample could also map its cleaned reads instead: `FASTQ=~/course/dataPreProcess/clean_fastq`, and add `.clean` before `.fastq.gz` in the two file names. The quality of this data is high, so the result is almost the same.
 
 The sorted BAM file of a full sample takes a few GB, and each of us has 20 GB in the home directory. Let's check the free space first, and if needed delete the chr5 BAM files from Day 2. The dedup BAM files from Day 3 contain the same reads:
 
