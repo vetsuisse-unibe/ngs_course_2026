@@ -257,18 +257,38 @@ Type `q` to quit, and `exit` to leave the compute node.
 
 ### IGV
 
-**IGV** (Integrative Genomics Viewer) shows alignments graphically on our own computers. Download these files to one folder on the computer, with right-click → **Download** in the VS Code Explorer:
+**IGV** (Integrative Genomics Viewer) shows the alignments as a picture. It runs on **our own laptop**, not on the cluster, so we first copy the files from the cluster to the laptop.
 
-- `refIdx/dog_chr5.fa` and `refIdx/dog_chr5.fa.fai`
-- `mapping/WE0025.sorted.bam` and `mapping/WE0025.sorted.bam.bai`, and the same two files for WE0028 and WE0029
+**Step 1: Install IGV (once).** Download **IGV Desktop** for our operating system from <https://igv.org/download> and install it. Start it once to check that it opens.
 
-Check the file sizes first with `ls -lh ~/course/variantCalling/mapping`: each BAM file is around 1 GB, so the download takes a while, especially over VPN.
+**Step 2: Make a folder on the laptop.** For example `Documents/ngs_igv`. All files go into this one folder.
 
-Then in IGV:
+**Step 3: Download the files from the cluster with VS Code.**
 
-1. **Genomes → Load Genome from File…** and choose `dog_chr5.fa`. (IGV's built-in dog genomes name the chromosome `chr5`, but our reference calls it `NC_049226.1`, so we load our own.)
-2. **File → Load from File…** and choose the three `.sorted.bam` files. Each needs its `.bai` file in the same folder.
-3. Type `NC_049226.1:10,000,000-10,001,000` in the search box and press Go.
+1. In VS Code (connected to the cluster), open the Explorer on the left (the top icon, two sheets of paper).
+2. If we don't see our `course` folder, choose **File → Open Folder…**, type `~/course` and press OK.
+3. Open `variantCalling/refIdx`, right-click `dog_chr5.fa` and choose **Download…**. Choose the `ngs_igv` folder. Do the same for `dog_chr5.fa.fai`.
+4. Open `variantCalling/mapping` and download `WE0025.sorted.bam` and `WE0025.sorted.bam.bai` in the same way.
+5. If there is time, also download the `.sorted.bam` and `.sorted.bam.bai` files for WE0028 and WE0029.
+
+We need **4 files** for one dog (or 8 for all three):
+
+| File | What it is |
+|---|---|
+| `dog_chr5.fa` | the reference sequence |
+| `dog_chr5.fa.fai` | its index |
+| `WE0025.sorted.bam` | the aligned reads |
+| `WE0025.sorted.bam.bai` | the BAM index |
+
+Each BAM file is around 1 GB, so the download takes a few minutes, longer over VPN. We can check the sizes first with `ls -lh ~/course/variantCalling/mapping`. While we wait, we can carry on with section 6 below.
+
+> **Important:** each `.fa` must sit next to its `.fai`, and each `.bam` next to its `.bai`, with the same name. IGV looks for the index file next to the data file and gives an error if it is missing.
+
+**Step 4: Open the files in IGV.**
+
+1. **Genomes → Load Genome from File…** and choose `dog_chr5.fa`. (IGV's built-in dog genomes call the chromosome `chr5`, but our reference calls it `NC_049226.1`, so the names would not match. That's why we load our own reference.)
+2. **File → Load from File…** and choose `WE0025.sorted.bam` (and the other BAM files if we downloaded them). A new track appears for each dog.
+3. Type `NC_049226.1:10,000,000-10,001,000` in the search box at the top and press **Go**. IGV only shows reads when we zoom in to a small region. If we see "Zoom in to see alignments", the region is too large.
 
 Questions:
 
