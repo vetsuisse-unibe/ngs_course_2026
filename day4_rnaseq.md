@@ -146,11 +146,14 @@ GTF=/data/courses/courseB/RNAseq/reference/UU_Cfam_GSD_1.0.gtf
 for S in 0 1 2
 do
     featureCounts -T 4 -p --countReadPairs -s $S -t exon -g gene_id \
-        -a $GTF -o counts_s$S.txt ${SAMPLE}.sorted.bam
+        -a $GTF -o ${SAMPLE}_counts_s$S.txt ${SAMPLE}.sorted.bam
 done
 
-grep -E "Status|Assigned" counts_s*.txt.summary
+ls -lh ${SAMPLE}_counts_s*
+grep -E "Status|Assigned" ${SAMPLE}_counts_s*.txt.summary
 ```
+
+`ls` should list six files, for example for 1003_DRG: `1003_DRG_counts_s0.txt`, `1003_DRG_counts_s1.txt`, `1003_DRG_counts_s2.txt` and a `.summary` file for each. If they are missing, scroll up and read the featureCounts message. The usual reasons are a wrong `SAMPLE` name (the BAM file is not found) or the mapping job not having finished yet.
 
 | Option | Meaning |
 |---|---|
@@ -163,12 +166,13 @@ Questions:
 
 1. How many pairs were **assigned** to a gene with `-s 0`, `-s 1` and `-s 2`?
 2. In a stranded library, one of `-s 1` or `-s 2` assigns about as many pairs as `-s 0`, and the other almost none. In an unstranded library, `-s 1` and `-s 2` each assign about half. Which is it here?
-3. Look at `counts_s0.txt.summary` (or the one that fits). Why are some pairs **Unassigned_NoFeatures**? Why are some **Unassigned_Ambiguity**?
+3. Look at the `.summary` file of our sample, for example `1003_DRG_counts_s0.txt.summary` (or the one that fits). Why are some pairs **Unassigned_NoFeatures**? Why are some **Unassigned_Ambiguity**?
 
-Now we look at a few genes in our counts. Column 7 is the count:
+Now we look at a few genes in our counts. We are still in `~/course/rnaseq/mapping` on the compute node. Column 7 is the count:
 
 ```shell
-grep -w -E "^(MOG|OLIG2|MPZ|PRPH|SCN10A|EFNB3)" counts_s0.txt | cut -f 1,7
+cd ~/course/rnaseq/mapping
+grep -w -E "^(MOG|OLIG2|MPZ|PRPH|SCN10A|EFNB3)" ${SAMPLE}_counts_s0.txt | cut -f 1,7
 exit
 ```
 
