@@ -1,0 +1,290 @@
+<!--
+INSTRUCTOR NOTES (not rendered on the page)
+Data: RNA-seq of healthy dogs from the preclinical body atlas, ENA PRJNA906635.
+6 dogs (1001, 1003, 1005 male; 1002, 1004, 1006 female) x 2 tissues (cervical spinal cord, dorsal root ganglia), 4 lanes each.
+Students use /data/courses/courseB/RNAseq/fastq_subset/<dog>_<tissue>_R1/R2.fastq.gz:
+the first 2 million read pairs of the first lane of each sample (prep/rnaseq_qc_subsets.slurm, run table prep/rnaseq_runs.tsv).
+Checked 2026-11-12 on SRR22458006: reads 73-76 bp (already lightly trimmed), adapters ~0.01%, poly-G tails ~0.4% in R2,
+read names start with NB501995 (NextSeq 500) although ENA lists "Illumina HiSeq 2000"; quality characters E A / < 6 #.
+Module names below are from the 2025 course; check them with module avail before class:
+  FastQC/0.11.9-Java-11, fastp/0.23.4-GCC-10.3.0, MultiQC (only used in "For the brave").
+-->
+
+# FASTQ Quality Control: Can We Trust These Reads?
+
+The puppies' disease variant lies in *EFNB3*, a gene active in the spinal cord. In the next days you will look at **gene expression** in healthy dogs: which genes are active in the **spinal cord**, and which in the **dorsal root ganglia** (DRG), where the sensory nerve cells sit?
+
+We use RNA-seq data from a public atlas of healthy dog tissues ([ENA PRJNA906635](https://www.ebi.ac.uk/ena/browser/view/PRJNA906635)): spinal cord and DRG from the same **6 dogs** (3 males, 3 females). Before analysing them, we have to know whether the data are good. Today you look inside FASTQ files, check their quality with **FastQC**, and clean them with **fastp**.
+
+## 1. Set up your working directory
+
+Log in to the Bioinformatics server with VS Code and open a terminal.
+
+```shell
+cd ~/course
+mkdir -p dataPreProcess/scripts dataPreProcess/raw_fastqc dataPreProcess/clean_fastq
+cd dataPreProcess
+```
+
+The reads are in a shared course directory. We don't copy them: a **link** makes them appear in your directory without using extra space.
+
+```shell
+ln -s /data/courses/courseB/RNAseq/fastq_subset raw_data
+ls -lh raw_data/
+```
+
+The file names tell you the dog and the tissue, for example `1001_SpinalCord_R1.fastq.gz`. For the course we use the first 2 million read pairs of each sample.
+
+At the end of the day your directory will look like this:
+
+```text
+course
+└── dataPreProcess
+    ├── raw_data -> /data/courses/courseB/RNAseq/fastq_subset
+    ├── raw_fastqc      FastQC reports of the raw reads
+    ├── clean_fastq     cleaned reads and fastp reports
+    └── scripts
+```
+
+Questions:
+
+1. How many samples are there? How many files?
+2. Why does each sample have two files, R1 and R2?
+
+## 2. Look inside a FASTQ file
+
+```shell
+zcat raw_data/1001_SpinalCord_R1.fastq.gz | head -n 8
+```
+
+Each read takes **4 lines**:
+
+| Line | Content |
+|---|---|
+| 1 | `@` and the read name: run, sequencing machine, flow cell, lane and position on the flow cell |
+| 2 | the sequence |
+| 3 | `+` |
+| 4 | the **quality** of each base, one character per base |
+
+Now look at the first read of R2:
+
+```shell
+zcat raw_data/1001_SpinalCord_R2.fastq.gz | head -n 4
+```
+
+Questions:
+
+1. Do the first reads of R1 and R2 have the same name? Why?
+2. How long is the sequence? How long is the quality line?
+3. The database says these samples were sequenced on an "Illumina HiSeq 2000". The machine name in the read name starts with `NB5`, which is the code of an **Illumina NextSeq**. What does this tell you about trusting metadata?
+
+### What do the quality characters mean?
+
+Each character stands for a number, the **Phred quality score** Q. The computer stores characters as numbers (ASCII codes), and Q is the code minus 33. You can look up a character's code with `printf`:
+
+```shell
+printf '%d\n' "'E"
+printf '%d\n' "'A"
+printf '%d\n' "'/"
+printf '%d\n' "'#"
+```
+
+So `E` is 69 − 33 = **Q36**. Q tells you the chance that the base is wrong:
+
+| Q | Chance the base is wrong | Accuracy |
+|---|---|---|
+| 2 | about 6 in 10 | basically unknown |
+| 10 | 1 in 10 | 90% |
+| 20 | 1 in 100 | 99% |
+| 30 | 1 in 1,000 | 99.9% |
+| 36 | about 1 in 4,000 | 99.97% |
+
+Questions:
+
+1. Which quality characters do you see? Why do you think there are only a few different ones? (Hint: the NextSeq groups quality values into a few bins.)
+2. What quality does the base `N` usually have?
+
+## 3. FastQC, interactively
+
+FastQC checks many aspects of quality and writes an HTML report for each file. Documentation: https://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/
+
+First try it on a compute node yourself. Ask SLURM for an interactive session with 4 CPUs:
+
+```shell
+srun --partition=pibu_el8 --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 --cpus-per-task=4 --mem=4G --time=01:00:00 --pty /bin/bash
+```
+
+Look at your prompt: which node are you on now?
+
+```shell
+cd ~/course/dataPreProcess
+module load FastQC/0.11.9-Java-11
+fastqc --threads 4 -o raw_fastqc raw_data/1001_SpinalCord_R1.fastq.gz
+ls raw_fastqc
+exit
+```
+
+Questions:
+
+1. Which files did FastQC write?
+2. After `exit`, which node are you on?
+
+## 4. FastQC as a batch job
+
+Running programs interactively is good for testing. For real work, write a job script: then the exact commands and settings are saved, and you can put them in the methods section of a paper.
+
+Save this as `run_fastqc.slurm` in `scripts`:
+
+```shell
+#!/bin/bash
+#SBATCH --job-name=fastqc
+#SBATCH --partition=pibu_el8
+#SBATCH --account=class-26980-ws-2026
+#SBATCH --reservation=class-26980-ws-2026
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=4G
+#SBATCH --time=01:00:00
+#SBATCH --output=fastqc.out
+
+module load FastQC/0.11.9-Java-11
+
+cd ~/course/dataPreProcess
+fastqc --threads 4 -o raw_fastqc raw_data/*.fastq.gz
+```
+
+```shell
+cd ~/course/dataPreProcess/scripts
+sbatch run_fastqc.slurm
+squeue -u $USER
+```
+
+With 4 CPUs, FastQC works on 4 files at the same time. It takes a few minutes for all 24 files.
+
+## 5. Read the FastQC reports
+
+The reports are HTML files in `raw_fastqc`. To open them in VS Code:
+
+1. Install the **Live Preview** extension by Microsoft, if you don't have it: open the Extensions panel (Ctrl+Shift+X or Cmd+Shift+X), search for "Live Preview" and click Install.
+2. In the VS Code Explorer on the left, go to `course/dataPreProcess/raw_fastqc`.
+3. Right-click `1001_SpinalCord_R1_fastqc.html` and choose **Show Preview**.
+
+Start with **Basic Statistics** and **Per base sequence quality**.
+
+Questions:
+
+1. How many reads are in each file? How long are they? Why are the reads not all exactly the same length?
+2. Look at **Per base sequence quality**. Where in the read is the quality lowest? Compare R1 and R2: which one is worse?
+3. Which modules have a warning (orange) or fail (red)? Several of them are **normal for RNA-seq**. Read the FastQC help for them:
+   - **Per base sequence content**: the first ~10 bases are uneven. RNA-seq libraries are made with random primers; why could that cause it?
+   - **Sequence Duplication Levels**: many reads are duplicated. In RNA-seq, what does it mean when a gene is very highly expressed?
+   - **Overrepresented sequences**: copy one sequence and search it with BLAST (https://blast.ncbi.nlm.nih.gov). Which gene does it come from?
+4. Compare a spinal cord report with a DRG report of the same dog. Do the tissues look different?
+
+## 6. Clean the reads with fastp
+
+**fastp** removes adapter sequences, cuts off poly-G tails and throws away reads of poor quality. It also writes its own HTML report, with the quality **before and after** cleaning. Documentation: https://github.com/OpenGene/fastp
+
+Save this as `fastp_clean.slurm` in `scripts`:
+
+```shell
+#!/bin/bash
+#SBATCH --job-name=fastp
+#SBATCH --partition=pibu_el8
+#SBATCH --account=class-26980-ws-2026
+#SBATCH --reservation=class-26980-ws-2026
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=4G
+#SBATCH --time=01:00:00
+#SBATCH --output=fastp.out
+
+module load fastp/0.23.4-GCC-10.3.0
+
+SAMPLE=1001_SpinalCord
+
+cd ~/course/dataPreProcess
+fastp \
+    -i raw_data/${SAMPLE}_R1.fastq.gz \
+    -I raw_data/${SAMPLE}_R2.fastq.gz \
+    -o clean_fastq/${SAMPLE}_R1.clean.fastq.gz \
+    -O clean_fastq/${SAMPLE}_R2.clean.fastq.gz \
+    --detect_adapter_for_pe \
+    --trim_poly_g \
+    -q 15 \
+    -l 36 \
+    -w 4 \
+    -h clean_fastq/${SAMPLE}_fastp.html \
+    -j clean_fastq/${SAMPLE}_fastp.json
+```
+
+| Option | Meaning |
+|---|---|
+| `-i`, `-I` | the input R1 and R2 files |
+| `-o`, `-O` | the cleaned R1 and R2 files |
+| `--detect_adapter_for_pe` | find the adapter sequence and cut it off the reads |
+| `--trim_poly_g` | cut off runs of G at the end of reads. On the NextSeq, "no signal" is read as G |
+| `-q 15` | a base with quality below Q15 counts as "low quality". A read is thrown away if more than 40% of its bases are low quality |
+| `-l 36` | throw away reads shorter than 36 bases after cleaning |
+| `-w 4` | use 4 CPUs |
+| `-h`, `-j` | the reports, as HTML (for you) and JSON (for programs) |
+| `\` at the end of a line | the command continues on the next line |
+
+If one read of a pair is thrown away, its mate is thrown away too, so R1 and R2 stay in the same order.
+
+```shell
+sbatch fastp_clean.slurm
+squeue -u $USER
+```
+
+Open `clean_fastq/1001_SpinalCord_fastp.html` with Live Preview.
+
+Questions:
+
+1. How many reads were there before and after cleaning? What percentage was removed?
+2. How many reads had adapters? How many had poly-G tails?
+3. Compare the quality plots before and after filtering. What changed?
+4. Clean one more sample: change `SAMPLE=1001_SpinalCord` to `SAMPLE=1001_DRG` and submit the job again. Are the results similar?
+
+**For the brave.** Combine all FastQC and fastp reports into one page with **MultiQC**. Find the module name with `module avail MultiQC`, then run in an interactive session:
+
+```shell
+cd ~/course/dataPreProcess
+module load <MultiQC module>
+multiqc raw_fastqc clean_fastq -o multiqc
+```
+
+Open `multiqc/multiqc_report.html` with Live Preview. Do the spinal cord and DRG samples group together in the plots? Which sample has the lowest quality?
+
+## 7. Save your work with git
+
+The FASTQ files and reports should not go into git. Add these lines to `~/course/.gitignore` with VS Code:
+
+```text
+# sequencing data and QC reports
+*.fastq.gz
+*.fq.gz
+*_fastqc.html
+*_fastqc.zip
+*_fastp.html
+*_fastp.json
+```
+
+```shell
+cd ~/course
+git add .gitignore dataPreProcess/scripts
+git status
+git commit -m "Add FASTQ quality control and cleaning scripts"
+```
+
+Questions:
+
+1. Which files does `git status` show as untracked? Why is `raw_data` not listed?
+2. Why should large data files not go into git? Where would you store them instead?
+
+### What did we learn?
+
+1. A FASTQ file has 4 lines per read; the quality line gives the error probability of each base.
+2. Always check the quality of your data before analysing it, and check the metadata too.
+3. Some FastQC warnings are normal for RNA-seq. Understand them before you "fix" them.
+4. Clean reads with a job script, so the exact settings are saved for the methods section of your paper.
+
+Next, you map the reads to the dog reference genome and find out which genes are active in the spinal cord and in the DRG.
