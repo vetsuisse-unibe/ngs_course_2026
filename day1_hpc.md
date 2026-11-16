@@ -366,7 +366,7 @@ sacct -u $USER --format=JobID,JobName,State,Elapsed,ReqMem,MaxRSS,AllocCPUS,Node
 
 Questions:
 
-1. Look at the `Elapsed` time of `countReads` (all six files, one after the other) and of the three `countArray` tasks. Why did the array finish sooner?
+1. Look at the `Elapsed` time of `countReads` (all six files, one after the other) and of the three `countArray` tasks.
 2. We requested 1 GB for the read counting. How much was used? What would be a sensible request next time?
 3. The course node has 128 CPUs and 512 GB of memory for about 10 students. What happens to the others if each student asks for 100 GB of memory for a job that needs 200 MB?
 4. What is the `State` of the job we cancelled?
