@@ -1,7 +1,8 @@
 <!--
 INSTRUCTOR NOTES (not rendered on GitHub)
-Students need one file in /data/courses/courseB/UnixEx/:
-  dog_chr5.fa   chromosome 5 (NC_049226.1) of UU_Cfam_GSD_1.0, soft-masked as distributed by NCBI (~88 Mb)
+Students need two files in /data/courses/courseB/UnixEx/:
+  dog_chr5.fa   chromosome 5 (NC_049226.1) of UU_Cfam_GSD_1.0, soft-masked as distributed by NCBI (89.6 Mb)
+  assembly_summary_refseq.txt   backup of the NCBI RefSeq table for Part 3 (~250 MB), in case wget is slow
 Preparation:
   B=https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/011/100/685/GCF_011100685.1_UU_Cfam_GSD_1.0
   wget $B/GCF_011100685.1_UU_Cfam_GSD_1.0_genomic.fna.gz
@@ -22,7 +23,7 @@ In this practical we log in to the Bioinformatics server (login8.hpc.binf.unibe.
 To log in to the Bioinformatics cluster we need to be connected to the unibe network via VPN or eduroam.
 
 ### VPN
-Log in to the unibe VPN server using FortiConnect (https://tinyurl.com/yxj8ovpd).
+Log in to the unibe VPN server using FortiClient (https://tinyurl.com/yxj8ovpd).
 
 ### eduroam
 If we are connected to the eduroam network, we don't need the VPN.
@@ -197,6 +198,12 @@ cd GenomeStats
 wget https://ftp.ncbi.nlm.nih.gov/genomes/refseq/assembly_summary_refseq.txt
 ls -lh
 ```
+The file is about 250 MB. If the download is slow or fails, copy the backup in the course directory instead:
+
+```shell
+cp /data/courses/courseB/UnixEx/assembly_summary_refseq.txt .
+ls -lh
+```
 Have a quick look with `less` (press `q` to exit):
 
 ```shell
@@ -242,6 +249,11 @@ Each of us finds the genome of the species we work with, or of a favourite anima
 
 ```shell
 grep -i "felis catus" assembly_summary_refseq.txt | cut -f 8,9,16,26,28,36
+```
+We get four lines, not one. Three of them are viruses (*Felis catus* papillomaviruses) whose names contain "Felis catus". `grep` finds the text anywhere in the line. To keep only the rows where the species name (column 8) is exactly "Felis catus", use `awk`:
+
+```shell
+awk -F'\t' '$8 == "Felis catus"' assembly_summary_refseq.txt | cut -f 8,9,16,26,28,36
 ```
 Column 36 is the number of protein-coding genes. Write down the species, genome size, GC % and number of protein-coding genes for that organism in the class table (link on ILIAS).
 
