@@ -17,7 +17,7 @@ Module names from the 2025 course; check: HISAT2/2.2.1-gompi-2021a, SAMtools/1.1
 
 # RNA-seq: What Makes the Spinal Cord Different?
 
-On Day 2 we checked and cleaned the RNA-seq reads of our samples: spinal cord or dorsal root ganglia (DRG) from one of six healthy dogs. Today we find out **which genes are active**. First we map a part of our own reads to the dog genome and count how many reads fall on each gene. Then we compare all 12 samples in R to find the genes that differ between spinal cord and DRG.
+On Day 2 you checked and cleaned the RNA-seq reads of your sample: spinal cord or dorsal root ganglia (DRG) from one of six healthy dogs. Today we find out **which genes are active**. First you map a part of your own reads to the dog genome and count how many reads fall on each gene. Then we compare all 12 samples in R to find the genes that differ between spinal cord and DRG.
 
 Two quick reminders of the biology:
 
@@ -29,7 +29,7 @@ Before we start, let's predict:
 1. Which kinds of genes do we expect to be more active in the spinal cord? Which in the DRG?
 2. The puppies' disease gene, *EFNB3*, matters most while the spinal cord develops. These dogs are adults. Do we expect it to be strongly expressed?
 
-## Part 1: Map our reads with HISAT2
+## Part 1: Map your reads with HISAT2
 
 RNA is spliced: the introns are removed, so one read can span two exons that lie thousands of bases apart in the genome. BWA, which we used for DNA, would fail on such reads. **HISAT2** is a **splice-aware** aligner: it can split a read across an intron.
 
@@ -39,7 +39,7 @@ read:          [ ──────── ]                     [ ──── ]
                one read, split over two exons
 ```
 
-The 12 samples are in the shared directory `/data/courses/courseB/RNA-seq/fastq_full/`. **Each of us selects one read pair (one sample) from this table** and maps both of its files, R1 and R2:
+The 12 samples are in the shared directory `/data/courses/courseB/RNA-seq/fastq_full/`. **Choose any one read pair (one sample) from this table** and maps both of its files, R1 and R2:
 
 | Sample | Dog | Sex | Tissue | R1 file | R2 file | Read pairs |
 |---|---|---|---|---|---|---|
@@ -105,7 +105,7 @@ samtools index ${SAMPLE}.sorted.bam
 
 Anyone who selected their own Day 2 sample could also map its cleaned reads instead: `FASTQ=~/course/dataPreProcess/clean_fastq`, and add `.clean` before `.fastq.gz` in the two file names. The quality of this data is high, so the result is almost the same.
 
-The sorted BAM file of a full sample takes a few GB, and each of us has 20 GB in the home directory. Let's check the free space first, and if needed delete the chr5 BAM files from Day 2. The dedup BAM files from Day 3 contain the same reads:
+The sorted BAM file of a full sample takes a few GB, and you have 20 GB in your home directory. Check the free space first, and if needed delete the chr5 BAM files from Day 2. The dedup BAM files from Day 3 contain the same reads:
 
 ```shell
 du -sh ~
@@ -166,9 +166,9 @@ Questions:
 
 1. How many pairs were **assigned** to a gene with `-s 0`, `-s 1` and `-s 2`?
 2. In a stranded library, one of `-s 1` or `-s 2` assigns about as many pairs as `-s 0`, and the other almost none. In an unstranded library, `-s 1` and `-s 2` each assign about half. Which is it here?
-3. Look at the `.summary` file of our sample, for example `1003_DRG_counts_s0.txt.summary` (or the one that fits). Why are some pairs **Unassigned_NoFeatures**? Why are some **Unassigned_Ambiguity**?
+3. Look at the `.summary` file of your sample, for example `1003_DRG_counts_s0.txt.summary` (or the one that fits). Why are some pairs **Unassigned_NoFeatures**? Why are some **Unassigned_Ambiguity**?
 
-Now we look at a few genes in our counts. We are still in `~/course/rnaseq/mapping` on the compute node. Column 7 is the count:
+Now we look at a few genes in your counts. We are still in `~/course/rnaseq/mapping` on the compute node. Column 7 is the count:
 
 ```shell
 cd ~/course/rnaseq/mapping
@@ -180,7 +180,7 @@ Question: Write the counts in the class table. Do spinal cord and DRG samples di
 
 ## Part 3: Differential expression in R
 
-To compare the tissues properly, we use all 12 samples, mapped and counted in advance with the same steps as above. We analyse them with **DESeq2** in RStudio on our own computers.
+To compare the tissues properly, we use all 12 samples, mapped and counted in advance with the same steps as above. We analyse them with **DESeq2** in RStudio on your own computer.
 
 ### Install the packages (once)
 
@@ -350,16 +350,16 @@ Questions:
 1. Which processes come up for the spinal cord? Which for the DRG? Do they fit the biology at the top of this page?
 2. Why do we give a `universe` (all tested genes) instead of all dog genes?
 
-### Save our results
+### Save your results
 
 ```r
 resdf <- resdf[order(resdf$padj), ]
 write.csv(resdf, "SpinalCord_vs_DRG_DESeq2.csv", row.names = FALSE)
 ```
 
-**For the brave.** Compare males and females: change the design to `~ dog + tissue` → `~ sex + tissue` and get `results(dds, contrast = c("sex", "male", "female"))`. Why can't we use `~ dog + sex + tissue`? (Hint: every dog has only one sex.) How many genes differ between the sexes? Our reference is a female dog: why can't Y-chromosome genes show up?
+**For the brave.** Compare males and females: change the design to `~ dog + tissue` → `~ sex + tissue` and get `results(dds, contrast = c("sex", "male", "female"))`. Why can't we use `~ dog + sex + tissue`? (Hint: every dog has only one sex.) How many genes differ between the sexes? The reference genome is from a female dog: why can't Y-chromosome genes show up?
 
-## Part 4: Save our work with git
+## Part 4: Save your work with git
 
 ```shell
 cd ~/course

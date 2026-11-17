@@ -56,7 +56,7 @@ Find your login and password in the students-passwords text file in the ILIAS re
 
 Commands in grey blocks are typed at the Unix command line (the terminal window above).
 
-Words between angle brackets, like `<filename>`, must be replaced with a name of our choice (without the brackets).
+Words between angle brackets, like `<filename>`, must be replaced with a name of your choice (without the brackets).
 
 ## Part 1: First commands
 
@@ -66,7 +66,7 @@ Words between angle brackets, like `<filename>`, must be replaced with a name of
 whoami
 pwd
 ```
-`pwd` shows something like `/home/student36`. This is our **home** directory.
+`pwd` shows something like `/home/student36`. This is your **home** directory.
 
 *List the files in the directory*
 
@@ -244,8 +244,8 @@ Questions:
 
 We will use the **UU_Cfam_GSD_1.0** assembly for the rest of the course.
 
-#### Our favourite organisms
-Each of us finds the genome of the species we work with, or of a favourite animal or plant. Search for its name with `grep` (`-i` ignores upper/lower case):
+#### Your favourite organism
+Find the genome of the species you work with, or of a favourite animal or plant. Search for its name with `grep` (`-i` ignores upper/lower case):
 
 ```shell
 grep -i "felis catus" assembly_summary_refseq.txt | cut -f 8,9,16,26,28,36
@@ -356,7 +356,7 @@ awk '!/^>/{gc+=gsub(/[gGcC]/,""); at+=gsub(/[aAtT]/,"")} END{printf "%.2f%%\n", 
 ### A question to think about until Day 3
 On Day 3 we will find that the puppies carry a variant in a gene called *EFNB3*. Go to https://www.ncbi.nlm.nih.gov/gene and search for *EFNB3* in human, mouse, dog and chicken (*Gallus gallus*). What do we notice for the chicken? Birds move their wings **together**, while dogs move their legs **one after the other**. Could that be related?
 
-## Save our work
+## Save your work
 ```shell
 history > ~/unix_day1_history.txt
 ```

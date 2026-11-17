@@ -4,7 +4,7 @@ Data: RNA-seq of healthy dogs from the preclinical body atlas, ENA PRJNA906635.
 6 dogs (1001, 1003, 1005 male; 1002, 1004, 1006 female) x 2 tissues (cervical spinal cord, dorsal root ganglia).
 Students use the full data in /data/courses/courseB/RNA-seq/fastq_full/<dog>_<tissue>_R1/R2.fastq.gz
 (4 lanes merged per sample; prep/rnaseq_download_full.slurm with run table prep/rnaseq_runs.tsv).
-Each student analyses one sample: assign the 12 samples to the students (e.g. list on the board).
+Each student chooses one sample (one R1/R2 pair) from the table; check that both tissues of dog 1002 are taken (needed for the dog 1002 questions).
 Per sample: 45-75 million read pairs, ~2-3 GB per file. Estimated run times (not measured on the cluster):
 FastQC ~10-20 min per file, fastp ~10-20 min per sample with 4 threads. fastp output ~4-5 GB per student (home quota 20 GB).
 Checked 2026-11-12 on SRR22458006: reads 73-76 bp (already lightly trimmed), adapters ~0.01%, poly-G tails ~0.4% in R2,
@@ -25,9 +25,9 @@ Module names below are from the 2025 course; check them with module avail before
 
 What makes the spinal cord different from the nerve tissue right next to it? Using RNA-seq from healthy dogs, we will compare the **spinal cord** with the **dorsal root ganglia** (DRG), which contain the sensory nerve cells, and find the genes that are active in one but not the other.
 
-We use RNA-seq data from a public atlas of healthy dog tissues ([ENA PRJNA906635](https://www.ebi.ac.uk/ena/browser/view/PRJNA906635)): spinal cord and DRG from the same **6 dogs** (3 males, 3 females). That makes 12 samples, and **each of us analyses one of them**. Before analysing the data, we have to know whether it is good. Today we look inside FASTQ files, check their quality with **FastQC**, and clean them with **fastp**.
+We use RNA-seq data from a public atlas of healthy dog tissues ([ENA PRJNA906635](https://www.ebi.ac.uk/ena/browser/view/PRJNA906635)): spinal cord and DRG from the same **6 dogs** (3 males, 3 females). That makes 12 samples, and **you choose one of them to analyse**. Before analysing the data, we have to know whether it is good. Today we look inside FASTQ files, check their quality with **FastQC**, and clean them with **fastp**.
 
-## 1. Set up our working directory and choose a sample
+## 1. Set up your working directory and choose a sample
 
 Log in to the Bioinformatics server with VS Code and open a terminal.
 
@@ -37,7 +37,7 @@ mkdir -p dataPreProcess/scripts dataPreProcess/raw_fastqc dataPreProcess/clean_f
 cd dataPreProcess
 ```
 
-The reads are in a shared course directory. They are large, so we don't copy them: a **link** makes them appear in our directory without using extra space.
+The reads are in a shared course directory. They are large, so we don't copy them: a **link** makes them appear in your directory without using extra space.
 
 ```shell
 ln -s /data/courses/courseB/RNA-seq/fastq_full raw_data
@@ -55,9 +55,9 @@ These are the 12 samples. Each sample has two files, `<sample>_R1.fastq.gz` and 
 | 1005 | male | `1005_SpinalCord` | `1005_DRG` |
 | 1006 | female | `1006_SpinalCord` | `1006_DRG` |
 
-**Each of us uses the sample the instructor assigns.** Write its name down; we need it all day. In the examples below, replace `1003_DRG` with your own sample.
+**Choose any one pair of files from the table**, that is, one sample with its R1 and R2 file. Write the sample name down; you need it all day. In the examples below, replace `1003_DRG` with your sample.
 
-At the end of the day our directory will look like this:
+At the end of the day your directory will look like this:
 
 ```text
 course
@@ -70,7 +70,7 @@ course
 
 Questions:
 
-1. How big are the two files of our sample?
+1. How big are the two files of your sample?
 2. Why does each sample have two files, R1 and R2?
 
 ## 2. Look inside a FASTQ file
@@ -136,7 +136,7 @@ Questions:
 
 FastQC checks many aspects of quality and writes an HTML report for each file. Documentation: https://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/
 
-Our files have tens of millions of reads, which takes FastQC a while. To try it out, we first make a small test file with the first 100,000 reads, on a compute node. Ask SLURM for an interactive session:
+Your files have tens of millions of reads, which takes FastQC a while. To try it out, we first make a small test file with the first 100,000 reads, on a compute node. Ask SLURM for an interactive session:
 
 ```shell
 srun --partition=pibu_el8 --account=class-26980-ws-2026 --reservation=class-26980-ws-2026 --cpus-per-task=1 --mem=4G --time=01:00:00 --pty /bin/bash
@@ -271,7 +271,7 @@ sbatch fastp_clean.slurm
 squeue -u $USER
 ```
 
-This also takes about 10 to 20 minutes. The cleaned reads take a few GB; we each have 20 GB in our home directory. Let's check how much we use:
+This also takes about 10 to 20 minutes. The cleaned reads take a few GB; you have 20 GB in your home directory. Check how much you use:
 
 ```shell
 du -sh ~/course/dataPreProcess/clean_fastq
@@ -298,7 +298,7 @@ multiqc raw_fastqc clean_fastq -o multiqc
 
 Open `multiqc/multiqc_report.html` with Live Preview. MultiQC becomes really useful with many samples: at the end of the day we will look at a MultiQC report of the whole class.
 
-## 7. Save our work with git
+## 7. Save your work with git
 
 The FASTQ files and reports should not go into git. Add these lines to `~/course/.gitignore` with VS Code:
 
