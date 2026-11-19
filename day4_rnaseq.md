@@ -222,9 +222,9 @@ Questions:
 2. The gene names are gene **symbols** (like `MOG`), because the NCBI annotation uses them. Why is that convenient?
 3. Why must `all(colnames(counts) == rownames(samples))` be `TRUE`?
 
-### A paired design
+### Build the dataset
 
-Each dog gave **both** tissues. Dogs differ from each other (age, genetics, how the tissue was collected), and we don't want those differences to hide the tissue effect. So we tell DESeq2 that samples from the same dog belong together: the design `~ dog + tissue` means "compare the tissues **within** each dog".
+Each dog gave **both** tissues, so every sample belongs to a dog and to a tissue. We store both in the DESeq2 object, together with the design `~ dog + tissue` (explained below), and remove genes that have almost no reads.
 
 ```r
 dds <- DESeqDataSetFromMatrix(countData = counts, colData = samples, design = ~ dog + tissue)
@@ -233,17 +233,9 @@ dds <- DESeqDataSetFromMatrix(countData = counts, colData = samples, design = ~ 
 keep <- rowSums(counts(dds) >= 10) >= 3
 dds <- dds[keep, ]
 nrow(dds)
-
-dds <- DESeq(dds)
-res <- results(dds, contrast = c("tissue", "SpinalCord", "DRG"), alpha = 0.05)
-summary(res)
 ```
 
-Questions:
-
-1. How many genes were removed by the filter? Why remove genes with almost no reads?
-2. `log2FoldChange` > 0 means higher in which tissue?
-3. How many genes are significantly higher in spinal cord, and how many in DRG (adjusted p-value < 0.05)? Is that more or less than we expected?
+Question: How many genes were removed by the filter? Why remove genes with almost no reads?
 
 ### Do the samples group by tissue? (PCA)
 
@@ -254,16 +246,35 @@ var <- round(100 * attr(pca, "percentVar"))
 
 ggplot(pca, aes(PC1, PC2, colour = tissue, shape = sex, label = dog)) +
     geom_point(size = 4) +
-    geom_text(vjust = -1, size = 3) +
+    geom_text(vjust = -1, size = 3, show.legend = FALSE) +
     labs(x = paste0("PC1: ", var[1], "% variance"),
          y = paste0("PC2: ", var[2], "% variance")) +
     theme_bw()
 ```
 
+Your plot should look similar to this:
+
+![PCA of the 12 samples](images/day4_pca.png)
+
 Questions:
 
 1. What separates the samples along PC1?
 2. Do the two tissues of the same dog lie close together on PC2? Do males and females separate?
+
+### A paired design
+
+Dogs differ from each other (age, genetics, how the tissue was collected), and we don't want those differences to hide the tissue effect. So we tell DESeq2 that samples from the same dog belong together: the design `~ dog + tissue` means "compare the tissues **within** each dog".
+
+```r
+dds <- DESeq(dds)
+res <- results(dds, contrast = c("tissue", "SpinalCord", "DRG"), alpha = 0.05)
+summary(res)
+```
+
+Questions:
+
+1. `log2FoldChange` > 0 means higher in which tissue?
+2. How many genes are significantly higher in spinal cord, and how many in DRG (adjusted p-value < 0.05)? Is that more or less than we expected?
 
 ### Check the result with known markers
 
@@ -296,10 +307,13 @@ ggplot(df, aes(tissue, count + 1, colour = tissue)) +
 res[markers, c("baseMean", "log2FoldChange", "padj")]
 ```
 
+![Normalised counts of the marker genes in each sample](images/day4_markers.png)
+
 Questions:
 
 1. Do the marker genes behave as expected? If not, what could be wrong?
 2. Is *EFNB3* expressed in adult spinal cord? In DRG? Does that fit what we know about its role during development?
+3. One DRG sample has almost no reads for *SCN10A*, *PRPH*, *POU4F1* and *MPZ*. Which one? Find it in the PCA plot too. What might have happened when this tissue was collected, and should we keep the sample in the analysis?
 
 ### Volcano plot and heatmap
 
@@ -320,6 +334,10 @@ pheatmap(assay(vsd)[top, ], scale = "row",
          annotation_col = samples[, c("tissue", "sex")],
          show_rownames = TRUE, fontsize_row = 7)
 ```
+
+![Volcano plot, spinal cord vs DRG](images/day4_volcano.png)
+
+![Heatmap of the 40 most significant genes](images/day4_heatmap.png)
 
 Questions:
 
@@ -344,6 +362,10 @@ go_drg <- enrichGO(up_drg, OrgDb = org.Cf.eg.db, keyType = "SYMBOL", ont = "BP",
 dotplot(go_sc, showCategory = 15) + ggtitle("Higher in spinal cord")
 dotplot(go_drg, showCategory = 15) + ggtitle("Higher in DRG")
 ```
+
+![GO terms higher in spinal cord](images/day4_go_sc.png)
+
+![GO terms higher in DRG](images/day4_go_drg.png)
 
 Questions:
 
