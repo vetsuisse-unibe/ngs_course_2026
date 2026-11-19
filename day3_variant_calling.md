@@ -1,13 +1,14 @@
 <!--
 INSTRUCTOR NOTES (not rendered on GitHub)
 Students continue in ~/course/variantCalling from the Day 2 mapping exercise:
-  refIdx/dog_chr5.fa (+ BWA index, .fai, .dict)   chromosome 5 of UU_Cfam_GSD_1.0, named NC_049226.1
+  refIdx/dog_chr5.fa (+ BWA index, .fai, .dict)   chromosome 5 of UU_Cfam_GSD_1.0, named chr5
   mapping/WE0025.sorted.bam, WE0028.sorted.bam, WE0029.sorted.bam (+ .bai), all of chr5
 Shared files needed under /data/courses/courseB/EFNB3/:
-  controls/controls.sites.vcf.gz (+ .tbi)   sites-only, normalised (bcftools norm -m -any), chr named NC_049226.1, at least NC_049226.1:27800000-37800000, from the control genomes
-  snpeff/                                   snpEff dataDir + config with database UU_Cfam_GSD_1.0_NCBI106 (chromosome names must match NC_049226.1)
-  fallback/                                 copies for students whose jobs fail: <dog>.sorted.bam, <dog>.dedup.bam (+ .bai), <dog>.g.vcf.gz (+ .tbi), WE.vcf.gz, WE.flt.vcf.gz, WE.ann.vcf.gz
-Variant calling is restricted to NC_049226.1:27800000-37800000 (10 Mb around EFNB3) with -L to keep HaplotypeCaller fast.
+  controls/controls.sites.vcf.gz (+ .tbi)   sites-only, normalised (bcftools norm -m -any), chr named chr5, at least chr5:27800000-37800000, from the control genomes
+  snpeff/                                   snpEff dataDir + config with database UU_Cfam_GSD_1.0_NCBI106 (chromosome names must match chr5)
+  fallback/                                 copies for students whose jobs fail: <dog>.sorted.bam, <dog>.dedup.bam (+ .bai), WE.vcf.gz, WE.flt.vcf.gz, WE.ann.vcf.gz
+  gvcf/                                     <dog>.g.vcf.gz (+ .tbi) for students whose HaplotypeCaller jobs fail
+Variant calling is restricted to chr5:27800000-37800000 (10 Mb around EFNB3) with -L to keep HaplotypeCaller fast.
 Module versions are from last year's course; check they still exist (module avail) and fill in the BCFtools module.
 -->
 
@@ -52,9 +53,9 @@ reads ─► BAM ─► mark duplicates ─► HaplotypeCaller (one gVCF per dog
               THE FUNNEL: from thousands of variants to one
 ```
 
-On Day 2 we mapped the reads of all of chromosome 5. To keep the variant calling fast, we only call variants in a **10 Mb region of chromosome 5** (`NC_049226.1:27,800,000-37,800,000`). Why this region? The authors genotyped all 13 family members on a SNP chip. Linkage analysis and autozygosity mapping (looking for long stretches where all three affected puppies are homozygous for the same haplotype) left only **5 regions on 5 chromosomes, 43.2 Mb in total**, where the causal variant can be. Our region lies inside one of them.
+On Day 2 we mapped the reads of all of chromosome 5. To keep the variant calling fast, we only call variants in a **10 Mb region of chromosome 5** (`chr5:27,800,000-37,800,000`). Why this region? The authors genotyped all 13 family members on a SNP chip. Linkage analysis and autozygosity mapping (looking for long stretches where all three affected puppies are homozygous for the same haplotype) left only **5 regions on 5 chromosomes, 43.2 Mb in total**, where the causal variant can be. Our region lies inside one of them.
 
-All positions refer to the **UU_Cfam_GSD_1.0** dog reference genome (a German Shepherd, also called CanFam4). Chromosome 5 is named `NC_049226.1` in this assembly.
+All positions refer to the **UU_Cfam_GSD_1.0** dog reference genome (a German Shepherd, also called CanFam4). Chromosome 5 is named `chr5` in this assembly.
 
 ## Setup
 
@@ -63,7 +64,7 @@ We continue in the directory from Day 2, where our reference and our three BAM f
 ```shell
 cd ~/course/variantCalling
 ls -lh refIdx/ mapping/
-mkdir -p markduplicates gvcf variants funnel
+mkdir -p scripts markduplicates gvcf variants funnel
 ```
 
 Questions:
@@ -127,7 +128,7 @@ module load SAMtools/1.13-GCC-10.3.0
 samtools tview markduplicates/WE0025.dedup.bam refIdx/dog_chr5.fa
 ```
 
-Press `g` and type `NC_049226.1:32799600`. Scroll right slowly with the arrow keys.
+Press `g` and type `chr5:32799600`. Scroll right slowly with the arrow keys.
 
 Questions:
 
@@ -163,7 +164,7 @@ cd ~/course/variantCalling/gvcf
 gatk --java-options "-Xmx6g" HaplotypeCaller \
     -R ../refIdx/dog_chr5.fa \
     -I ../markduplicates/${DOG}.dedup.bam \
-    -L NC_049226.1:27800000-37800000 \
+    -L chr5:27800000-37800000 \
     -ERC GVCF \
     -O ${DOG}.g.vcf.gz
 ```
@@ -179,7 +180,7 @@ Questions:
 1. What does `-L` do? What would happen without it?
 2. Look inside a gVCF: `zcat ../gvcf/WE0025.g.vcf.gz | grep -v "^#" | head`. What do the lines with `<NON_REF>` and an `END=` tag mean?
 
-If the jobs take too long, copy the gVCFs: `cp /data/courses/courseB/EFNB3/fallback/*.g.vcf.gz* ~/course/variantCalling/gvcf/`
+If the jobs take too long, copy the gVCFs: `cp /data/courses/courseB/EFNB3/gvcf/*.g.vcf.gz* ~/course/variantCalling/gvcf/`
 
 ## Part 4: Joint genotyping
 
@@ -289,7 +290,7 @@ module load BCFtools  # check the exact module name with: module avail BCFtools
 
 cd ~/course/variantCalling/variants
 
-snpEff="apptainer exec -B $TMPDIR:/tmp -B /data/courses/courseB/EFNB3/snpeff /mnt/containers/apptainer/snpeff:5.2--hdfd78af_1 snpEff"
+snpEff="apptainer exec -B $TMPDIR:/tmp -B /data/courses/courseB/EFNB3/snpeff /mnt/containers/apptainer/snpeff:5.2--hdfd78af_1.1 snpEff"
 
 $snpEff ann -Xmx6g \
     -c /data/courses/courseB/EFNB3/snpeff/snpEff.config \
@@ -407,13 +408,13 @@ Questions:
 4. Check the genotypes and read depths of all three dogs (replace `<POS>` with the candidate's position):
 
 ```shell
-bcftools query -H -f '%POS\t%REF\t%ALT[\t%GT:%AD]\n' -r NC_049226.1:<POS> step4.private.vcf.gz
+bcftools query -H -f '%POS\t%REF\t%ALT[\t%GT:%AD]\n' -r chr5:<POS> step4.private.vcf.gz
 ```
 `AD` = allelic depth: reads supporting reference, alternative. Is the evidence convincing?
 
 #### Look at it in IGV
 
-Open IGV with the chromosome 5 genome we loaded on Day 2 (**Genomes → Load Genome from File…** → `dog_chr5.fa`). Download the three **dedup** BAM files and their `.bai` files from `markduplicates/` (right-click → **Download** in VS Code), load them with **File → Load from File…**, and go to `NC_049226.1:32,799,580-32,799,680`.
+Open IGV with the chromosome 5 genome we loaded on Day 2 (**Genomes → Load Genome from File…** → `dog_chr5.fa`). Download the three **dedup** BAM files and their `.bai` files from `markduplicates/` (right-click → **Download** in VS Code), load them with **File → Load from File…**, and go to `chr5:32,799,580-32,799,680`.
 
 1. Do all reads in all three dogs show the variant?
 2. Is the region repetitive or low-complexity? Could this be an alignment artefact?
